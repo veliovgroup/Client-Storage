@@ -1,0 +1,42 @@
+{
+  "name": "ClientStorage",
+  "version": "2.1.0",
+  "description": "Bulletproof persistent browser storage, works with disabled Cookies and/or localStorage",
+  "main": "./client-storage.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "persistent",
+    "bulletproof",
+    "browser",
+    "storage",
+    "localStorage",
+    "local storage",
+    "cookies",
+    "disabled cookies",
+    "client",
+    "meteor",
+    "meteorjs"
+  ],
+  "tags": [
+    "persistent",
+    "bulletproof",
+    "browser",
+    "storage",
+    "localStorage",
+    "local storage",
+    "cookies",
+    "disabled cookies",
+    "client",
+    "meteor",
+    "meteorjs"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/VeliovGroup/Client-Storage.git"
+  },
+  "homepage": "https://github.com/VeliovGroup/Client-Storage",
+  "author": "Dmitriy A. (https://veliovgroup.com)",
+  "license": "BSD-3-Clause"
+}
