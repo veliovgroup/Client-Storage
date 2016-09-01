@@ -59,7 +59,7 @@ var csCookies = new clientStorage('cookies');
 #### Use `localStorage` only
 To use `localStorage` as a driver for `ClientStorage` create new instance of `clientStorage` (*camel-case, first letter __lower-case__*):
 ```js
-var ClientStorage  = require('ClientStorage').clientStorage;
+var clientStorage  = require('ClientStorage').clientStorage;
 var csLocalStorage = new clientStorage('localStorage');
 ```
 or in ES6:
