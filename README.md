@@ -33,16 +33,16 @@ import { ClientStorage } from 'meteor/ostrio:cstorage';
 Usage:
 ========
 #### Get
- - `ClientStorage.get(key)` - Read a record. If the key doesn't exist a null value will be returned.
+ - `ClientStorage.get('key')` - Read a record. If the key doesn't exist a null value will be returned.
 
 #### Set
  - `ClientStorage.set('key', value)` - Create/overwrite a value in storage
 
 #### Remove
- - `ClientStorage.remove(key)` - Remove a record
+ - `ClientStorage.remove('key')` - Remove a record
 
 #### Has
- - `ClientStorage.has(key)` - Check whether a record exists, returns boolean value
+ - `ClientStorage.has('key')` - Check whether a record exists, returns boolean value
 
 #### Keys
  - `ClientStorage.keys()` - Returns an array of all storage keys
@@ -53,7 +53,14 @@ Usage:
 #### Use `cookies` only
 To use `cookies` as a driver for `ClientStorage` create new instance of `clientStorage` (*camel-case, first letter __lower-case__*)
 ```js
+var clientStorage  = require('ClientStorage').clientStorage;
 var csCookies = new clientStorage('cookies');
+```
+
+or in ES6 (Meteor):
+```jsx
+import { clientStorage } from 'meteor/ostrio:cstorage';
+let csLocalStorage = new clientStorage('cookies');
 ```
 
 #### Use `localStorage` only
@@ -62,7 +69,8 @@ To use `localStorage` as a driver for `ClientStorage` create new instance of `cl
 var clientStorage  = require('ClientStorage').clientStorage;
 var csLocalStorage = new clientStorage('localStorage');
 ```
-or in ES6:
+
+or in ES6 (Meteor):
 ```jsx
 import { clientStorage } from 'meteor/ostrio:cstorage';
 let csLocalStorage = new clientStorage('localStorage');
@@ -87,7 +95,7 @@ ClientStorage.has('city'); // false
 ClientStorage.keys(); // ['locale', 'country', 'gender']
 
 ClientStorage.remove('locale'); // true
-ClientStorage.get('locale'); // null
+ClientStorage.get('locale'); // undefined
 
 ClientStorage.keys(); // ['country', 'gender']
 
