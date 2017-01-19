@@ -1,6 +1,6 @@
 Package.describe({
   name: 'ostrio:cstorage',
-  version: '2.1.0',
+  version: '2.1.1',
   summary: 'Bulletproof persistent Client storage, works with disabled Cookies and/or localStorage',
   git: 'https://github.com/VeliovGroup/Client-Storage',
   documentation: 'README.md'
@@ -21,5 +21,5 @@ Package.onTest(function(api) {
 });
 
 Npm.depends({
-  'ClientStorage': '2.1.0'
+  'ClientStorage': '2.1.1'
 });

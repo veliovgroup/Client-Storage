@@ -1,5 +1,5 @@
 const cs = require('ClientStorage');
 
-let ClientStorage = cs.ClientStorage;
-let clientStorage = cs.clientStorage;
+const ClientStorage = cs.ClientStorage;
+const clientStorage = cs.clientStorage;
 export { ClientStorage, clientStorage };
