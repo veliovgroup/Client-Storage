@@ -1,6 +1,6 @@
 {
   "name": "ClientStorage",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Bulletproof persistent browser storage, works with disabled Cookies and/or localStorage",
   "main": "./client-storage.js",
   "scripts": {
