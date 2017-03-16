@@ -212,7 +212,7 @@ Tinytest.add('ClientStorage - Cookies - set() / get() - Object and Array', funct
   test.isTrue(setResOne);
   test.isTrue(setResTwo);
   test.isTrue(setResThree);
-  
+
   test.equal(ClientStorageCookies.get('teststorageOne'), one);
   test.equal(ClientStorageCookies.get('teststorageTwo'), two);
   test.equal(ClientStorageCookies.get('teststorageThree'), three);
@@ -347,7 +347,7 @@ Tinytest.add('ClientStorage - LocalStorage - set() / get() - Object and Array', 
   test.isTrue(setResOne);
   test.isTrue(setResTwo);
   test.isTrue(setResThree);
-  
+
   test.equal(ClientStorageLS.get('teststorageOne'), one);
   test.equal(ClientStorageLS.get('teststorageTwo'), two);
   test.equal(ClientStorageLS.get('teststorageThree'), three);
@@ -459,7 +459,7 @@ Tinytest.add('ClientStorage - JS - set() / get() - Object and Array', function (
   test.isTrue(setResOne);
   test.isTrue(setResTwo);
   test.isTrue(setResThree);
-  
+
   test.equal(ClientStorageJS.get('teststorageOne'), one);
   test.equal(ClientStorageJS.get('teststorageTwo'), two);
   test.equal(ClientStorageJS.get('teststorageThree'), three);
