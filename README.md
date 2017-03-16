@@ -1,20 +1,27 @@
 Client Storage
 ========
 
- - Bulletproof Client storage functions, `localStorage` with fall-back to `cookies`
- - Works in browser with disabled `localStorage` and `cookies`
- - __100%__ tests coverage
+ - Bulletproof Client storage functions, `localStorage` with fall-back to `cookies`;
+ - Unicode values and keys support;
+ - Works in browser with disabled `localStorage` and `cookies`;
+ - __100%__ tests coverage.
 
 Install:
 ========
 ```shell
-npm install ClientStorage
+npm install --save ClientStorage
 ```
 
 Install Meteor:
 ========
 ```shell
+# Via Atmosphere
 meteor add ostrio:cstorage
+```
+
+```shell
+# Via NPM
+meteor npm install --save ClientStorage
 ```
 
 Require:
@@ -28,7 +35,6 @@ ES6 Import (Meteor):
 ```jsx
 import { ClientStorage } from 'meteor/ostrio:cstorage';
 ```
-
 
 Usage:
 ========
@@ -77,7 +83,6 @@ let csLocalStorage = new clientStorage('localStorage');
 ```
 
 __Note:__ *All instances shares same cookies and localStorage records!*
-
 
 
 Example:
