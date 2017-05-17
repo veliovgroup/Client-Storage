@@ -1,12 +1,13 @@
 {
   "name": "ClientStorage",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Bulletproof persistent browser storage, works with disabled Cookies and/or localStorage",
   "main": "./client-storage.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
+    "browser",
     "persistent",
     "bulletproof",
     "browser",
@@ -20,6 +21,7 @@
     "meteorjs"
   ],
   "tags": [
+    "browser",
     "persistent",
     "bulletproof",
     "browser",
