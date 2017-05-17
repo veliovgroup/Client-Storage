@@ -1,8 +1,8 @@
-Client Storage
+Persistent Client (Browser) Storage
 ========
 
- - Bulletproof Client storage functions, `localStorage` with fall-back to `cookies`;
- - Unicode values and keys support;
+ - Bulletproof persistent Client storage;
+ - Support for Unicode values and keys;
  - Works in browser with disabled `localStorage` and `cookies`;
  - __100%__ tests coverage.
 
@@ -42,20 +42,22 @@ Usage:
  - `ClientStorage.get('key')` - Read a record. If the key doesn't exist a null value will be returned.
 
 #### Set
- - `ClientStorage.set('key', value)` - Create/overwrite a value in storage
+ - `ClientStorage.set('key', value)` - Create/overwrite a value in storage.
 
 #### Remove
- - `ClientStorage.remove('key')` - Remove a record
+ - `ClientStorage.remove('key')` - Remove a record.
 
 #### Has
- - `ClientStorage.has('key')` - Check whether a record exists, returns boolean value
+ - `ClientStorage.has('key')` - Check whether a record exists, returns a boolean value.
 
 #### Keys
- - `ClientStorage.keys()` - Returns an array of all storage keys
+ - `ClientStorage.keys()` - Returns an array of all storage keys.
 
 #### Empty
- - `ClientStorage.empty()` - Empty storage (remove all key/value pairs). __Use with caution! (*May remove cookies which was set not by you*)__
+ - `ClientStorage.empty()` - Empty storage (remove all key/value pairs). __Use with caution! (*May remove cookies which weren't set by you*)__.
 
+Alternate usage:
+========
 #### Use `cookies` only
 To use `cookies` as a driver for `ClientStorage` create new instance of `clientStorage` (*camel-case, first letter __lower-case__*)
 ```js
@@ -66,7 +68,7 @@ var csCookies = new clientStorage('cookies');
 or in ES6 (Meteor):
 ```jsx
 import { clientStorage } from 'meteor/ostrio:cstorage';
-let csLocalStorage = new clientStorage('cookies');
+const csLocalStorage = new clientStorage('cookies');
 ```
 
 #### Use `localStorage` only
@@ -79,11 +81,10 @@ var csLocalStorage = new clientStorage('localStorage');
 or in ES6 (Meteor):
 ```jsx
 import { clientStorage } from 'meteor/ostrio:cstorage';
-let csLocalStorage = new clientStorage('localStorage');
+const csLocalStorage = new clientStorage('localStorage');
 ```
 
 __Note:__ *All instances shares same cookies and localStorage records!*
-
 
 Example:
 =========
