@@ -1,7 +1,7 @@
 Package.describe({
   name: 'ostrio:cstorage',
-  version: '2.1.2',
-  summary: 'Bulletproof persistent Client storage, works with disabled Cookies and/or localStorage',
+  version: '2.2.0',
+  summary: 'Bulletproof persistent Client (Browser) storage, works with disabled Cookies and/or localStorage',
   git: 'https://github.com/VeliovGroup/Client-Storage',
   documentation: 'README.md'
 });
@@ -10,8 +10,6 @@ Package.onUse(function(api) {
   api.versionsFrom('1.4');
   api.use('ecmascript', 'client');
   api.mainModule('cstorage.js', 'client');
-  api.export('ClientStorage', 'client');
-  api.export('clientStorage', 'client');
 });
 
 Package.onTest(function(api) {
@@ -21,5 +19,5 @@ Package.onTest(function(api) {
 });
 
 Npm.depends({
-  'ClientStorage': '2.1.2'
+  'ClientStorage': '2.1.3'
 });
