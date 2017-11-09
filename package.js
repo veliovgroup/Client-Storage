@@ -1,6 +1,6 @@
 Package.describe({
   name: 'ostrio:cstorage',
-  version: '2.2.0',
+  version: '2.2.1',
   summary: 'Bulletproof persistent Client (Browser) storage, works with disabled Cookies and/or localStorage',
   git: 'https://github.com/VeliovGroup/Client-Storage',
   documentation: 'README.md'

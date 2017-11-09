@@ -100,8 +100,8 @@ Tinytest.add('ClientStorage - remove() - non existent value', function (test) {
 
 Tinytest.add('ClientStorage - empty() - ALL', function (test) {
   ClientStorage.empty();
-  var setResOne = ClientStorage.set('teststorageOne', 'One');
-  var setResTwo = ClientStorage.set('teststorageTwo', 'Two');
+  ClientStorage.set('teststorageOne', 'One');
+  ClientStorage.set('teststorageTwo', 'Two');
   var removeRes = ClientStorage.empty();
 
   test.isTrue(removeRes);
@@ -113,8 +113,8 @@ Tinytest.add('ClientStorage - empty() - ALL', function (test) {
 
 Tinytest.add('ClientStorage - keys() / has() / remove() - String', function (test) {
   ClientStorage.empty();
-  var setResOne = ClientStorage.set('teststorageOne', 'One');
-  var setResTwo = ClientStorage.set('teststorageTwo', 'Two');
+  ClientStorage.set('teststorageOne', 'One');
+  ClientStorage.set('teststorageTwo', 'Two');
 
   test.isTrue(!!~ClientStorage.keys().indexOf('teststorageOne'));
   test.isTrue(!!~ClientStorage.keys().indexOf('teststorageTwo'));
@@ -235,8 +235,8 @@ Tinytest.add('ClientStorage - Cookies - remove() - non existent value', function
 
 Tinytest.add('ClientStorage - Cookies - empty() - ALL', function (test) {
   ClientStorageCookies.empty();
-  var setResOne = ClientStorageCookies.set('teststorageOne', 'One');
-  var setResTwo = ClientStorageCookies.set('teststorageTwo', 'Two');
+  ClientStorageCookies.set('teststorageOne', 'One');
+  ClientStorageCookies.set('teststorageTwo', 'Two');
   var removeRes = ClientStorageCookies.empty();
 
   test.isTrue(removeRes);
@@ -248,8 +248,8 @@ Tinytest.add('ClientStorage - Cookies - empty() - ALL', function (test) {
 
 Tinytest.add('ClientStorage - Cookies - keys() / has() / remove() - String', function (test) {
   ClientStorageCookies.empty();
-  var setResOne = ClientStorageCookies.set('teststorageOne', 'One');
-  var setResTwo = ClientStorageCookies.set('teststorageTwo', 'Two');
+  ClientStorageCookies.set('teststorageOne', 'One');
+  ClientStorageCookies.set('teststorageTwo', 'Two');
 
   test.isTrue(!!~ClientStorageCookies.keys().indexOf('teststorageOne'));
   test.isTrue(!!~ClientStorageCookies.keys().indexOf('teststorageTwo'));
@@ -270,7 +270,7 @@ Tinytest.add('ClientStorage - Cookies - keys() / has() / remove() - String', fun
 //////////////
 var ClientStorageLS = new clientStorage('localStorage');
 
-Tinytest.add('ClientStorage - LocalStorage - set() / get() / has() - Void (localStorage can\'t store undefined)', function (test) {
+Tinytest.add('ClientStorage - LocalStorage - set() / get() / has() - Void (Error is expected as localStorage can\'t store undefined)', function (test) {
   ClientStorageLS.empty();
   var testVal = void 0;
   var setRes = ClientStorageLS.set('Void', testVal);
@@ -370,8 +370,8 @@ Tinytest.add('ClientStorage - LocalStorage - remove() - non existent value', fun
 
 Tinytest.add('ClientStorage - LocalStorage - empty() - ALL', function (test) {
   ClientStorageLS.empty();
-  var setResOne = ClientStorageLS.set('teststorageOne', 'One');
-  var setResTwo = ClientStorageLS.set('teststorageTwo', 'Two');
+  ClientStorageLS.set('teststorageOne', 'One');
+  ClientStorageLS.set('teststorageTwo', 'Two');
   var removeRes = ClientStorageLS.empty();
 
   test.isTrue(removeRes);
@@ -383,8 +383,8 @@ Tinytest.add('ClientStorage - LocalStorage - empty() - ALL', function (test) {
 
 Tinytest.add('ClientStorage - LocalStorage - keys() / has() / remove() - String', function (test) {
   ClientStorageLS.empty();
-  var setResOne = ClientStorageLS.set('teststorageOne', 'One');
-  var setResTwo = ClientStorageLS.set('teststorageTwo', 'Two');
+  ClientStorageLS.set('teststorageOne', 'One');
+  ClientStorageLS.set('teststorageTwo', 'Two');
 
   test.isTrue(!!~ClientStorageLS.keys().indexOf('teststorageOne'));
   test.isTrue(!!~ClientStorageLS.keys().indexOf('teststorageTwo'));
@@ -483,8 +483,8 @@ Tinytest.add('ClientStorage - JS - remove() - non existent value', function (tes
 
 Tinytest.add('ClientStorage - JS - empty() - ALL', function (test) {
   ClientStorageJS.empty();
-  var setResOne = ClientStorageJS.set('teststorageOne', 'One');
-  var setResTwo = ClientStorageJS.set('teststorageTwo', 'Two');
+  ClientStorageJS.set('teststorageOne', 'One');
+  ClientStorageJS.set('teststorageTwo', 'Two');
   var removeRes = ClientStorageJS.empty();
 
   test.isTrue(removeRes);
@@ -496,8 +496,8 @@ Tinytest.add('ClientStorage - JS - empty() - ALL', function (test) {
 
 Tinytest.add('ClientStorage - JS - keys() / has() / remove() - String', function (test) {
   ClientStorageJS.empty();
-  var setResOne = ClientStorageJS.set('teststorageOne', 'One');
-  var setResTwo = ClientStorageJS.set('teststorageTwo', 'Two');
+  ClientStorageJS.set('teststorageOne', 'One');
+  ClientStorageJS.set('teststorageTwo', 'Two');
 
   test.isTrue(!!~ClientStorageJS.keys().indexOf('teststorageOne'));
   test.isTrue(!!~ClientStorageJS.keys().indexOf('teststorageTwo'));
