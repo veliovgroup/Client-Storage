@@ -26,13 +26,13 @@ meteor npm install --save ClientStorage
 
 Require:
 ========
-```jsx
+```js
 var ClientStorage = require('ClientStorage').ClientStorage;
 ```
 
 ES6 Import (Meteor):
 ========
-```jsx
+```js
 import { ClientStorage } from 'meteor/ostrio:cstorage';
 ```
 
@@ -66,7 +66,7 @@ var csCookies = new clientStorage('cookies');
 ```
 
 or in ES6 (Meteor):
-```jsx
+```js
 import { clientStorage } from 'meteor/ostrio:cstorage';
 const csLocalStorage = new clientStorage('cookies');
 ```
@@ -79,16 +79,16 @@ var csLocalStorage = new clientStorage('localStorage');
 ```
 
 or in ES6 (Meteor):
-```jsx
+```js
 import { clientStorage } from 'meteor/ostrio:cstorage';
 const csLocalStorage = new clientStorage('localStorage');
 ```
 
-__Note:__ *All instances shares same cookies and localStorage records!*
+__Note:__ *All instances are sharing same cookie and localStorage records!*
 
 Example:
 =========
-```javascript
+```js
 ClientStorage.set('locale', 'en'); // true
 ClientStorage.set('country', 'usa'); // true
 ClientStorage.set('gender', 'male'); // true
