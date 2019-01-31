@@ -39,12 +39,17 @@ import { ClientStorage } from 'meteor/ostrio:cstorage';
 
 ## Usage:
 
-- `.get({String})` - `ClientStorage.get('key')` - Read a record. If the key doesn't exist a null value will be returned;
-- `.get({String}, {String|[mix]|Boolean|Object})` - `ClientStorage.set('key', value)` - Create/overwrite a value in storage;
-- `.remove({String})` - `ClientStorage.remove('key')` - Remove a record;
-- `.has({String})` - `ClientStorage.has('key')` - Check whether a record exists, returns a boolean value;
-- `.keys()` - `ClientStorage.keys()` - Returns an array of all storage keys;
-- `.empty()` -  `ClientStorage.empty()` - Empty storage (remove all key/value pairs). __Use with caution! (*May remove cookies which weren't set by you*)__.
+- `ClientStorage.get('key')` - Read a record. If the key doesn't exist a null value will be returned;
+  - `key` - `{String}` - Record's key;
+- `ClientStorage.set('key', value)` - Create/overwrite a value in storage;
+  - `key` - `{String}` - Record's key;
+  - `value` - `{String|[mix]|Boolean|Object}` - Record's value (content);
+- `ClientStorage.remove('key')` - Remove a record;
+  - `key` - `{String}` - Record's key;
+- `ClientStorage.has('key')` - Check whether a record exists, returns a boolean value;
+  - `key` - `{String}` - Record's key;
+- `ClientStorage.keys()` - Returns an array of all storage keys;
+- `ClientStorage.empty()` - Empty storage (remove all key/value pairs). __Use with caution! (*May remove cookies which weren't set by you*)__.
 
 ## Alternate usage:
 
@@ -55,6 +60,8 @@ To use `cookies` as a driver for `ClientStorage` create new instance of `clientS
 ```js
 var clientStorage  = require('ClientStorage').clientStorage;
 var csCookies = new clientStorage('cookies');
+csCookies.has('locale'); // false
+csCookies.set('locale', 'en_US'); // true
 ```
 
 or in ES6 (Meteor):
@@ -62,6 +69,8 @@ or in ES6 (Meteor):
 ```js
 import { clientStorage } from 'meteor/ostrio:cstorage';
 const csLocalStorage = new clientStorage('cookies');
+csLocalStorage.has('locale'); // false
+csLocalStorage.set('locale', 'en_US'); // true
 ```
 
 ### Use `localStorage` only:
@@ -71,6 +80,8 @@ To use `localStorage` as a driver for `ClientStorage` create new instance of `cl
 ```js
 var clientStorage  = require('ClientStorage').clientStorage;
 var csLocalStorage = new clientStorage('localStorage');
+csLocalStorage.has('locale'); // false
+csLocalStorage.set('locale', 'en_US'); // true
 ```
 
 or in ES6 (Meteor):
@@ -78,6 +89,8 @@ or in ES6 (Meteor):
 ```js
 import { clientStorage } from 'meteor/ostrio:cstorage';
 const csLocalStorage = new clientStorage('localStorage');
+csLocalStorage.has('locale'); // false
+csLocalStorage.set('locale', 'en_US'); // true
 ```
 
 __Note:__ *All instances are sharing same cookie and localStorage records!*
