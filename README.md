@@ -4,7 +4,7 @@
 - 💪 Bulletproof persistent Client storage;
 - ㊗️ Support for Unicode values and keys;
 - 👨‍💻 Support for `String`, `Array`, `Object`, and `Boolean` as values;
-- ♿︎ Works with disabled `localStorage` and `cookies`;
+- ♿ Works with disabled `localStorage` and `cookies`;
 - 👷‍♂️ __100%__ tests coverage.
 
 ## Install:
