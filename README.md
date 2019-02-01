@@ -7,6 +7,8 @@
 - ♿ Works with disabled `localStorage` and `cookies`;
 - 👷‍♂️ __100%__ tests coverage.
 
+![ClientStorage NPM library logo](https://raw.githubusercontent.com/VeliovGroup/Client-Storage/master/ClientStorage-npm-logo.jpg)
+
 ## Install:
 
 ```shell
