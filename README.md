@@ -157,11 +157,20 @@ ClientStorage.keys(); // []
 ClientStorage.empty(); // false
 ```
 
-## Testing:
+## Running Tests
 
-Meteor/Tinytest
+1. Clone this package
+2. In Terminal (*Console*) go to directory where package is cloned
+3. Then run:
+
+### Meteor/Tinytest
 
 ```shell
 meteor test-packages ./
-# PORT is required, and can be changed to any local open port
 ```
+
+## Support our open source contribution:
+
+This project wouldn't be possible without [ostr.io](https://ostr.io).
+
+Using [ostr.io](https://ostr.io) you are not only [protecting domain names](https://ostr.io/info/domain-names-protection), [monitoring websites and servers](https://ostr.io/info/monitoring), using [Prerendering for better SEO](https://ostr.io/info/prerendering) of your JavaScript website, but support our Open Source activity, and great packages like this one are available for free.
