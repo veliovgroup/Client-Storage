@@ -2,8 +2,8 @@
 
 - 😎 No external dependencies;
 - 💪 Bulletproof persistent Client storage;
-- ㊗️ Support for Unicode values and keys;
-- 👨‍💻 Support for `String`, `Array`, `Object`, and `Boolean` as values;
+- ㊗️ With Unicode support for values and keys;
+- 👨‍💻 With `String`, `Array`, `Object`, and `Boolean` support as values;
 - ♿ Works with disabled `localStorage` and `cookies`;
 - 👷‍♂️ __100%__ tests coverage.
 
