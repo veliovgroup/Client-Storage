@@ -41,6 +41,16 @@ function __Cookies(_cookies) {
   }
 }
 
+/*
+@locus Client
+@function getTimestamp
+@param offset {Number} - Time offset (seconds) to add or subtract.
+@summary Get current timestamp with offset in seconds.
+ */
+function getTimestamp(offset) {
+  offset = offset || 0;
+  return Math.floor(((new Date).getTime()) / 1000) + offset;
+}
 
 /*
 @locus Client
@@ -195,12 +205,17 @@ ClientStorage.prototype.get = function(key) {
   if (!this.has(key)) {
     return void 0;
   }
+
+  var values = null;
   if (this.LSSupport) {
-    return this.__unescape(this.ls.getItem(key));
+    values = this.__unescape(this.ls.getItem(key));
   } else if (this.cookies) {
-    return this.__unescape(this.cookies.get(key));
+    values = this.__unescape(this.cookies.get(key));
+  } else {
+    values = this._data[key];
   }
-  return this._data[key];
+
+  return values.value;
 };
 
 
@@ -210,16 +225,22 @@ ClientStorage.prototype.get = function(key) {
 @name set
 @param {String} key   - The name of the key to create/overwrite
 @param {mixed}  value - The value
+@param {Number} expires_at time - The expired time as seconds.
 @summary Create/overwrite a value in storage.
 @returns {Boolean}
  */
-ClientStorage.prototype.set = function(key, value) {
+ClientStorage.prototype.set = function(key, value, expires_at = null) {
+  var values = { value: value };
+  if (expires_at) {
+    values['__expires_at__'] = getTimestamp(expires_at);
+  }
+
   if (this.LSSupport) {
-    this.ls.setItem(key, this.__escape(value));
+    this.ls.setItem(key, this.__escape(values));
   } else if (this.cookies) {
-    this.cookies.set(key, this.__escape(value));
+    this.cookies.set(key, this.__escape(values));
   } else {
-    this._data[key] = value;
+    this._data[key] = values;
   }
   return true;
 };
@@ -257,12 +278,21 @@ ClientStorage.prototype.remove = function(key) {
 @returns {Boolean}
  */
 ClientStorage.prototype.has = function(key) {
+  var _has = true;
+
   if (this.LSSupport) {
-    return !!this.ls.getItem(key);
+    _has = !!this.ls.getItem(key);
   } else if (this.cookies) {
-    return this.cookies.has(key);
+    _has = this.cookies.has(key);
+  } else {
+    _has = this._data.hasOwnProperty(key);
   }
-  return this._data.hasOwnProperty(key);
+
+  if (!_has) {
+    return false;
+  }
+
+  return !this.isExpired(key);
 };
 
 
@@ -274,17 +304,23 @@ ClientStorage.prototype.has = function(key) {
 @returns {[String]]}
  */
 ClientStorage.prototype.keys = function() {
+  var _keys = [];
+
   if (this.LSSupport) {
     var i = this.ls.length;
-    var results = [];
     while (i--) {
-      results.push(this.ls.key(i));
+      _keys.push(this.ls.key(i));
     }
-    return results;
   } else if (this.cookies) {
-    return this.cookies.keys();
+    _keys = this.cookies.keys();
+  } else {
+    _keys = Object.keys(this._data);
   }
-  return Object.keys(this._data);
+
+  var _this = this;
+  return _keys.filter(function(key) {
+    return !_this.isExpired(key);
+  });
 };
 
 
@@ -311,6 +347,43 @@ ClientStorage.prototype.empty = function() {
   return false;
 };
 
+/*
+@function
+@memberOf ClientStorage
+@name isExpired
+@param {String} key - The name of the stored record to check
+@summary Read a record and check the expired time. If the record exists or the record is expired, true value will be returned. Otherwise false value will be returned.
+@returns {Boolean}
+ */
+ClientStorage.prototype.isExpired = function(key) {
+  var values = null;
+
+  if (this.LSSupport) {
+    values = this.__unescape(this.ls.getItem(key));
+  } else if (this.cookies) {
+    values = this.__unescape(this.cookies.get(key));
+  } else {
+    values = this._data[key];
+  }
+
+  if (!values || !values.__expires_at__ || !values.__expires_at__ === undefined) {
+    return false;
+  }
+
+  if (values.__expires_at__ - getTimestamp() > 0) {
+    return false;
+  }
+
+  // Remove the record if it's expired.
+  if (this.LSSupport) {
+    this.ls.removeItem(key);
+  } else if (this.cookies) {
+    this.cookies.remove(key, null, window.location.host);
+  }
+  delete this._data[key];
+
+  return true;
+};
 
 /*
 @function

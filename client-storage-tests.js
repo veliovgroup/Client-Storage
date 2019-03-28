@@ -1,4 +1,9 @@
-import { ClientStorage, clientStorage } from 'meteor/ostrio:cstorage';
+import { ClientStorage, clientStorage } from './client-storage';
+
+function delay(ms) {
+  ms += new Date().getTime();
+  while (new Date() < ms) {}
+}
 
 Tinytest.add('ClientStorage - set() / get() / has() - Void (Should fail for localStorage)', function (test) {
   ClientStorage.empty();
@@ -128,6 +133,61 @@ Tinytest.add('ClientStorage - keys() / has() / remove() - String', function (tes
   test.isFalse(ClientStorage.has('teststorageOne'));
   test.isTrue(ClientStorage.has('teststorageTwo'));
   ClientStorage.empty();
+});
+
+Tinytest.add('ClientStorage - get() / set() / keys() / has() / - Expire', function (test) {
+  ClientStorage.empty();
+  ClientStorage.set('testExpiredString', 'String', 2); // expired time 5s
+  ClientStorage.set('testExpiredNumber', 1, 2);
+  ClientStorage.set('testExpiredBoolean', true, 2);
+  ClientStorage.set('testExpiredObject', { value: 1 }, 2);
+
+  test.equal(ClientStorage.get('testExpiredString'), 'String');
+  test.equal(ClientStorage.get('testExpiredNumber'), 1);
+  test.equal(ClientStorage.get('testExpiredBoolean'), true);
+  test.equal(ClientStorage.get('testExpiredObject').value, 1);
+
+
+  test.isTrue(ClientStorage.has('testExpiredString'));
+  test.isTrue(!!~ClientStorage.keys().indexOf('testExpiredString'));
+
+  delay(1000)
+  test.equal(ClientStorage.get('testExpiredString'), 'String');
+  test.equal(ClientStorage.get('testExpiredNumber'), 1);
+  test.equal(ClientStorage.get('testExpiredBoolean'), true);
+  test.equal(ClientStorage.get('testExpiredObject').value, 1);
+
+  test.isTrue(ClientStorage.has('testExpiredString'));
+  test.isTrue(!!~ClientStorage.keys().indexOf('testExpiredString'));
+
+  delay(1000)
+  test.equal(ClientStorage.get('testExpiredString'), undefined);
+  test.equal(ClientStorage.get('testExpiredNumber'), undefined);
+  test.equal(ClientStorage.get('testExpiredBoolean'), undefined);
+  test.equal(ClientStorage.get('testExpiredObject'), undefined);
+
+  test.isTrue(!ClientStorage.has('testExpiredString'));
+  test.isTrue(!~ClientStorage.keys().indexOf('testExpiredString'));
+
+  ClientStorage.empty();
+});
+
+Tinytest.add('ClientStorage - remove() / empty() - Expired', function (test) {
+  ClientStorage.empty();
+  ClientStorage.set('teststorageOne', 'One', 2);
+  ClientStorage.set('teststorageTwo', 'Two', 2);
+
+  var removeRes = ClientStorage.remove('teststorageOne');
+  test.isTrue(removeRes);
+  test.isFalse(ClientStorage.has('teststorageOne'));
+
+  var removeRes = ClientStorage.empty();
+
+  test.isTrue(removeRes);
+  test.equal(ClientStorage.keys(), []);
+
+  removeRes = ClientStorage.empty();
+  test.isFalse(removeRes);
 });
 
 //////////////
@@ -265,6 +325,61 @@ Tinytest.add('ClientStorage - Cookies - keys() / has() / remove() - String', fun
   ClientStorageCookies.empty();
 });
 
+Tinytest.add('ClientStorage - Cookies - get() / set() / keys() / has() / - Expire', function (test) {
+  ClientStorageCookies.empty();
+  ClientStorageCookies.set('testExpiredString', 'String', 2); // expired time 5s
+  ClientStorageCookies.set('testExpiredNumber', 1, 2);
+  ClientStorageCookies.set('testExpiredBoolean', true, 2);
+  ClientStorageCookies.set('testExpiredObject', { value: 1 }, 2);
+
+  test.equal(ClientStorageCookies.get('testExpiredString'), 'String');
+  test.equal(ClientStorageCookies.get('testExpiredNumber'), 1);
+  test.equal(ClientStorageCookies.get('testExpiredBoolean'), true);
+  test.equal(ClientStorageCookies.get('testExpiredObject').value, 1);
+
+
+  test.isTrue(ClientStorageCookies.has('testExpiredString'));
+  test.isTrue(!!~ClientStorageCookies.keys().indexOf('testExpiredString'));
+
+  delay(1000)
+  test.equal(ClientStorageCookies.get('testExpiredString'), 'String');
+  test.equal(ClientStorageCookies.get('testExpiredNumber'), 1);
+  test.equal(ClientStorageCookies.get('testExpiredBoolean'), true);
+  test.equal(ClientStorageCookies.get('testExpiredObject').value, 1);
+
+  test.isTrue(ClientStorageCookies.has('testExpiredString'));
+  test.isTrue(!!~ClientStorageCookies.keys().indexOf('testExpiredString'));
+
+  delay(1000)
+  test.equal(ClientStorageCookies.get('testExpiredString'), undefined);
+  test.equal(ClientStorageCookies.get('testExpiredNumber'), undefined);
+  test.equal(ClientStorageCookies.get('testExpiredBoolean'), undefined);
+  test.equal(ClientStorageCookies.get('testExpiredObject'), undefined);
+
+  test.isTrue(!ClientStorageCookies.has('testExpiredString'));
+  test.isTrue(!~ClientStorageCookies.keys().indexOf('testExpiredString'));
+
+  ClientStorageCookies.empty();
+});
+
+Tinytest.add('ClientStorage Cookies - remove() / empty() - Expired', function (test) {
+  ClientStorageCookies.empty();
+  ClientStorageCookies.set('teststorageOne', 'One', 2);
+  ClientStorageCookies.set('teststorageTwo', 'Two', 2);
+
+  var removeRes = ClientStorageCookies.remove('teststorageOne');
+  test.isTrue(removeRes);
+  test.isFalse(ClientStorageCookies.has('teststorageOne'));
+
+  var removeRes = ClientStorageCookies.empty();
+
+  test.isTrue(removeRes);
+  test.equal(ClientStorageCookies.keys(), []);
+
+  removeRes = ClientStorageCookies.empty();
+  test.isFalse(removeRes);
+});
+
 //////////////
 // LocalStorage only
 //////////////
@@ -400,6 +515,61 @@ Tinytest.add('ClientStorage - LocalStorage - keys() / has() / remove() - String'
   ClientStorageLS.empty();
 });
 
+Tinytest.add('ClientStorage - LocalStorage - get() / set() / keys() / has() / - Expire', function (test) {
+  ClientStorageLS.empty();
+  ClientStorageLS.set('testExpiredString', 'String', 2); // expired time 5s
+  ClientStorageLS.set('testExpiredNumber', 1, 2);
+  ClientStorageLS.set('testExpiredBoolean', true, 2);
+  ClientStorageLS.set('testExpiredObject', { value: 1 }, 2);
+
+  test.equal(ClientStorageLS.get('testExpiredString'), 'String');
+  test.equal(ClientStorageLS.get('testExpiredNumber'), 1);
+  test.equal(ClientStorageLS.get('testExpiredBoolean'), true);
+  test.equal(ClientStorageLS.get('testExpiredObject').value, 1);
+
+
+  test.isTrue(ClientStorageLS.has('testExpiredString'));
+  test.isTrue(!!~ClientStorageLS.keys().indexOf('testExpiredString'));
+
+  delay(1000)
+  test.equal(ClientStorageLS.get('testExpiredString'), 'String');
+  test.equal(ClientStorageLS.get('testExpiredNumber'), 1);
+  test.equal(ClientStorageLS.get('testExpiredBoolean'), true);
+  test.equal(ClientStorageLS.get('testExpiredObject').value, 1);
+
+  test.isTrue(ClientStorageLS.has('testExpiredString'));
+  test.isTrue(!!~ClientStorageLS.keys().indexOf('testExpiredString'));
+
+  delay(1000)
+  test.equal(ClientStorageLS.get('testExpiredString'), undefined);
+  test.equal(ClientStorageLS.get('testExpiredNumber'), undefined);
+  test.equal(ClientStorageLS.get('testExpiredBoolean'), undefined);
+  test.equal(ClientStorageLS.get('testExpiredObject'), undefined);
+
+  test.isTrue(!ClientStorageLS.has('testExpiredString'));
+  test.isTrue(!~ClientStorageLS.keys().indexOf('testExpiredString'));
+
+  ClientStorageLS.empty();
+});
+
+Tinytest.add('ClientStorage LocalStorage - remove() / empty() - Expired', function (test) {
+  ClientStorageLS.empty();
+  ClientStorageLS.set('teststorageOne', 'One', 2);
+  ClientStorageLS.set('teststorageTwo', 'Two', 2);
+
+  var removeRes = ClientStorageLS.remove('teststorageOne');
+  test.isTrue(removeRes);
+  test.isFalse(ClientStorageLS.has('teststorageOne'));
+
+  var removeRes = ClientStorageLS.empty();
+
+  test.isTrue(removeRes);
+  test.equal(ClientStorageLS.keys(), []);
+
+  removeRes = ClientStorageCookies.empty();
+  test.isFalse(removeRes);
+});
+
 //////////////
 // JS only
 //////////////
@@ -511,4 +681,59 @@ Tinytest.add('ClientStorage - JS - keys() / has() / remove() - String', function
   test.isFalse(ClientStorageJS.has('teststorageOne'));
   test.isTrue(ClientStorageJS.has('teststorageTwo'));
   ClientStorageJS.empty();
+});
+
+Tinytest.add('ClientStorage - JS - get() / set() / keys() / has() / - Expire', function (test) {
+  ClientStorageJS.empty();
+  ClientStorageJS.set('testExpiredString', 'String', 2); // expired time 5s
+  ClientStorageJS.set('testExpiredNumber', 1, 2);
+  ClientStorageJS.set('testExpiredBoolean', true, 2);
+  ClientStorageJS.set('testExpiredObject', { value: 1 }, 2);
+
+  test.equal(ClientStorageJS.get('testExpiredString'), 'String');
+  test.equal(ClientStorageJS.get('testExpiredNumber'), 1);
+  test.equal(ClientStorageJS.get('testExpiredBoolean'), true);
+  test.equal(ClientStorageJS.get('testExpiredObject').value, 1);
+
+
+  test.isTrue(ClientStorageJS.has('testExpiredString'));
+  test.isTrue(!!~ClientStorageJS.keys().indexOf('testExpiredString'));
+
+  delay(1000)
+  test.equal(ClientStorageJS.get('testExpiredString'), 'String');
+  test.equal(ClientStorageJS.get('testExpiredNumber'), 1);
+  test.equal(ClientStorageJS.get('testExpiredBoolean'), true);
+  test.equal(ClientStorageJS.get('testExpiredObject').value, 1);
+
+  test.isTrue(ClientStorageJS.has('testExpiredString'));
+  test.isTrue(!!~ClientStorageJS.keys().indexOf('testExpiredString'));
+
+  delay(1000)
+  test.equal(ClientStorageJS.get('testExpiredString'), undefined);
+  test.equal(ClientStorageJS.get('testExpiredNumber'), undefined);
+  test.equal(ClientStorageJS.get('testExpiredBoolean'), undefined);
+  test.equal(ClientStorageJS.get('testExpiredObject'), undefined);
+
+  test.isTrue(!ClientStorageJS.has('testExpiredString'));
+  test.isTrue(!~ClientStorageJS.keys().indexOf('testExpiredString'));
+
+  ClientStorageJS.empty();
+});
+
+Tinytest.add('ClientStorage JS - remove() / empty() - Expired', function (test) {
+  ClientStorageJS.empty();
+  ClientStorageJS.set('teststorageOne', 'One', 2);
+  ClientStorageJS.set('teststorageTwo', 'Two', 2);
+
+  var removeRes = ClientStorageJS.remove('teststorageOne');
+  test.isTrue(removeRes);
+  test.isFalse(ClientStorageJS.has('teststorageOne'));
+
+  var removeRes = ClientStorageJS.empty();
+
+  test.isTrue(removeRes);
+  test.equal(ClientStorageJS.keys(), []);
+
+  removeRes = ClientStorageJS.empty();
+  test.isFalse(removeRes);
 });
