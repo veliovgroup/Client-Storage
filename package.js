@@ -9,7 +9,7 @@ Package.describe({
 Package.onUse((api) => {
   api.versionsFrom('1.4');
   api.use('ecmascript', 'client');
-  api.mainModule('cstorage.js', 'client');
+  api.mainModule('client-storage.js', 'client');
 });
 
 Package.onTest((api) => {

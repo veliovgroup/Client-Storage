@@ -50,7 +50,7 @@ function __Cookies(_cookies) {
 @summary Read a cookie. If the cookie doesn't exist a null value will be returned.
 @returns {String|null}
  */
-__Cookies.prototype.get = function(key) {
+__Cookies.prototype.get = function (key) {
   if (!key) {
     return void 0;
   }
@@ -72,7 +72,7 @@ __Cookies.prototype.get = function(key) {
 @summary Create/overwrite a cookie.
 @returns {Boolean}
  */
-__Cookies.prototype.set = function(key, value) {
+__Cookies.prototype.set = function (key, value) {
   if (key) {
     this.cookies[key] = value;
     document.cookie = escape(key) + '=' + escape(value) + '; Expires=Fri, 31 Dec 9999 23:59:59 GMT; Path=/';
@@ -90,7 +90,7 @@ __Cookies.prototype.set = function(key, value) {
 @summary Remove a cookie(s).
 @returns {Boolean}
  */
-__Cookies.prototype.remove = function(key) {
+__Cookies.prototype.remove = function (key) {
   var keys = Object.keys(this.cookies);
   if (key) {
     if (!this.cookies.hasOwnProperty(key)) {
@@ -117,7 +117,7 @@ __Cookies.prototype.remove = function(key) {
 @summary Check whether a cookie key is exists
 @returns {Boolean}
  */
-__Cookies.prototype.has = function(key) {
+__Cookies.prototype.has = function (key) {
   if (!key) {
     return false;
   }
@@ -133,7 +133,7 @@ __Cookies.prototype.has = function(key) {
 @summary Returns an array of all readable cookies from this location.
 @returns {[String]}
  */
-__Cookies.prototype.keys = function() {
+__Cookies.prototype.keys = function () {
   return Object.keys(this.cookies);
 };
 
@@ -152,33 +152,33 @@ function ClientStorage(driver) {
   }
 
   switch (driver) {
-  case 'localStorage':
-    if (this.LSSupport) {
-      this.ls = window.localStorage || localStorage;
-    } else {
-      console.warn('ClientStorage is set to "localStorage", but it is not supported on this browser');
-    }
-    break;
-  case 'cookies':
-    if (this.cookies) {
+    case 'localStorage':
+      if (this.LSSupport) {
+        this.ls = window.localStorage || localStorage;
+      } else {
+        console.warn('ClientStorage is set to "localStorage", but it is not supported on this browser');
+      }
+      break;
+    case 'cookies':
+      if (this.cookies) {
+        this.LSSupport = false;
+        this.ls = null;
+      } else {
+        console.warn('ClientStorage is set to "cookies", but Cookies is disabled on this browser');
+      }
+      break;
+    case 'js':
+      this.cookies = false;
       this.LSSupport = false;
-      this.ls        = null;
-    } else {
-      console.warn('ClientStorage is set to "cookies", but Cookies is disabled on this browser');
-    }
-    break;
-  case 'js':
-    this.cookies   = false;
-    this.LSSupport = false;
-    this.ls        = null;
-    break;
-  default:
-    if (this.LSSupport) {
-      this.ls = window.localStorage || localStorage;
-    } else {
       this.ls = null;
-    }
-    break;
+      break;
+    default:
+      if (this.LSSupport) {
+        this.ls = window.localStorage || localStorage;
+      } else {
+        this.ls = null;
+      }
+      break;
   }
 }
 
@@ -191,7 +191,7 @@ function ClientStorage(driver) {
 @summary Read a record. If the record doesn't exist a null value will be returned.
 @returns {mixed}
  */
-ClientStorage.prototype.get = function(key) {
+ClientStorage.prototype.get = function (key) {
   if (!this.has(key)) {
     return void 0;
   }
@@ -213,7 +213,25 @@ ClientStorage.prototype.get = function(key) {
 @summary Create/overwrite a value in storage.
 @returns {Boolean}
  */
-ClientStorage.prototype.set = function(key, value) {
+ClientStorage.prototype.set = function (key, value, time) {
+  if (time) {
+    if (this.LSSupport) {
+      this.ls.setItem(key, this.__escape(value));
+      setTimeout(() => {
+        this.ls.removeItem(key)
+      }, time)
+    } else if (this.cookies) {
+      this.cookies.set(key, this.__escape(value));
+      setTimeout(() => {
+        this.cookies.remove(key, null, window.location.host)
+      }, time)
+    } else {
+      this._data[key] = value;
+      setTimeout(() => {
+        delete this._data[key];
+      }, time)
+    }
+  }
   if (this.LSSupport) {
     this.ls.setItem(key, this.__escape(value));
   } else if (this.cookies) {
@@ -233,7 +251,7 @@ ClientStorage.prototype.set = function(key, value) {
 @summary Remove a record.
 @returns {Boolean}
  */
-ClientStorage.prototype.remove = function(key) {
+ClientStorage.prototype.remove = function (key) {
   if (key && this.has(key)) {
     if (this.LSSupport) {
       this.ls.removeItem(key);
@@ -256,7 +274,7 @@ ClientStorage.prototype.remove = function(key) {
 @summary Check if record exists
 @returns {Boolean}
  */
-ClientStorage.prototype.has = function(key) {
+ClientStorage.prototype.has = function (key) {
   if (this.LSSupport) {
     return !!this.ls.getItem(key);
   } else if (this.cookies) {
@@ -273,7 +291,7 @@ ClientStorage.prototype.has = function(key) {
 @summary Returns all storage keys
 @returns {[String]]}
  */
-ClientStorage.prototype.keys = function() {
+ClientStorage.prototype.keys = function () {
   if (this.LSSupport) {
     var i = this.ls.length;
     var results = [];
@@ -295,16 +313,16 @@ ClientStorage.prototype.keys = function() {
 @summary Empty storage (remove all key/value pairs)
 @returns {Boolean}
  */
-ClientStorage.prototype.empty = function() {
+ClientStorage.prototype.empty = function () {
   if (this.LSSupport && this.ls.length > 0) {
     var self = this;
-    this.keys().forEach(function(key) {
+    this.keys().forEach(function (key) {
       return self.remove(key);
     });
     return true;
   } else if (this.cookies) {
     return this.cookies.remove();
-  } else if (Object.keys(this._data).length){
+  } else if (Object.keys(this._data).length) {
     this._data = {};
     return true;
   }
@@ -317,7 +335,7 @@ ClientStorage.prototype.empty = function() {
 @memberOf ClientStorage
 @name __escape
  */
-ClientStorage.prototype.__escape = function(value) {
+ClientStorage.prototype.__escape = function (value) {
   try {
     return JSON.stringify(value);
   } catch (e) {
@@ -334,7 +352,7 @@ ClientStorage.prototype.__escape = function(value) {
 @memberOf ClientStorage
 @name __unescape
  */
-ClientStorage.prototype.__unescape = function(value) {
+ClientStorage.prototype.__unescape = function (value) {
   try {
     return JSON.parse(value);
   } catch (e) {
@@ -348,7 +366,7 @@ ClientStorage.prototype.__unescape = function(value) {
 @name LSSupport
 @summary Test browser for localStorage support
  */
-ClientStorage.prototype.LSSupport = (function() {
+ClientStorage.prototype.LSSupport = (function () {
   try {
     var support = 'localStorage' in window && window.localStorage !== null;
     if (support) {
