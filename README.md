@@ -43,7 +43,7 @@ import { ClientStorage } from 'meteor/ostrio:cstorage';
 
 - `ClientStorage.get('key')` - Read a record. If the key doesn't exist a null value will be returned;
   - `key` - `{String}` - Record's key;
-- `ClientStorage.set('key', value)` - Create/overwrite a value in storage;
+- `ClientStorage.set('key', value, time)` - Create/overwrite a value in storage, optional time to expire in milliseconds;
   - `key` - `{String}` - Record's key;
   - `value` - `{String|[mix]|Boolean|Object}` - Record's value (content);
 - `ClientStorage.remove('key')` - Remove a record;
