@@ -219,7 +219,6 @@ ClientStorage.prototype.set = function (key, value, time) {
       let expire = new Date().getTime() + time;
       this.ls.setItem(key, this.__escape(value));
       this.ls.setItem(key + "._expiredAt", expire);
-      console.log(expire)
     } else if (this.cookies) {
       this.cookies.set(key, this.__escape(value));
       let seconds = time / 1000;
