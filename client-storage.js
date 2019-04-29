@@ -216,21 +216,21 @@ ClientStorage.prototype.get = function (key) {
 ClientStorage.prototype.set = function (key, value, time) {
   if (time) {
     if (this.LSSupport) {
+      let expire = new Date().getTime() + time;
       this.ls.setItem(key, this.__escape(value));
-      setTimeout(() => {
-        this.ls.removeItem(key)
-      }, time)
+      this.ls.setItem(key + "._expiredAt", expire);
+      console.log(expire)
     } else if (this.cookies) {
       this.cookies.set(key, this.__escape(value));
-      setTimeout(() => {
-        this.cookies.remove(key, null, window.location.host)
-      }, time)
+      let seconds = time / 1000;
+      document.cookie = key + "=" + value + "; max-age=" + seconds + "; path=/";
     } else {
       this._data[key] = value;
       setTimeout(() => {
         delete this._data[key];
       }, time)
     }
+    return true
   }
   if (this.LSSupport) {
     this.ls.setItem(key, this.__escape(value));
@@ -241,6 +241,21 @@ ClientStorage.prototype.set = function (key, value, time) {
   }
   return true;
 };
+
+function LSExpire() {
+  setInterval(() => {
+    for (var key in localStorage) {
+      if (key.slice(-11) === "._expiredAt") {
+        if (window.localStorage.getItem(key) < new Date().getTime()) {
+          window.localStorage.removeItem(key);
+          window.localStorage.removeItem(key.replace("._expiredAt", ""))
+        }
+      }
+    }
+  }, 2000)
+}
+
+LSExpire();
 
 
 /*
