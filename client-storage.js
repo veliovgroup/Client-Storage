@@ -72,7 +72,13 @@ __Cookies.prototype.get = function (key) {
 @summary Create/overwrite a cookie.
 @returns {Boolean}
  */
-__Cookies.prototype.set = function (key, value) {
+__Cookies.prototype.set = function (key, value, time) {
+  if (key && time) {
+    this.cookies[key] = value;
+    let seconds = time / 1000;
+    document.cookie = escape(key) + '=' + escape(value) + '; max-age=' + seconds + '; Path=/';
+    return true;
+  }
   if (key) {
     this.cookies[key] = value;
     document.cookie = escape(key) + '=' + escape(value) + '; Expires=Fri, 31 Dec 9999 23:59:59 GMT; Path=/';
@@ -214,16 +220,27 @@ ClientStorage.prototype.get = function (key) {
 @returns {Boolean}
  */
 ClientStorage.prototype.set = function (key, value, time) {
+  function LSExpire() {
+    setInterval(() => {
+      for (var key in localStorage) {
+        if (key.includes('._expiredAt')) {
+          if (window.localStorage.getItem(key) < new Date().getTime()) {
+            window.localStorage.removeItem(key);
+            window.localStorage.removeItem(key.replace('._expiredAt', ''))
+          }
+        }
+      }
+    }, 2000)
+  }
   if (time) {
     if (this.LSSupport) {
       let expire = new Date().getTime() + time;
       this.ls.setItem(key, this.__escape(value));
-      this.ls.setItem(key + "._expiredAt", expire);
+      this.ls.setItem(key + '._expiredAt', expire);
+      LSExpire();
     } else if (this.cookies) {
-      this.cookies.set(key, this.__escape(value));
-      let seconds = time / 1000;
-      document.cookie = key + "=" + value + "; max-age=" + seconds + "; path=/";
-    } else {
+      this.cookies.set(key, this.__escape(value), time);
+    } else if (!this.LSSupport && !this.cookies) {
       this._data[key] = value;
       setTimeout(() => {
         delete this._data[key];
@@ -240,21 +257,6 @@ ClientStorage.prototype.set = function (key, value, time) {
   }
   return true;
 };
-
-function LSExpire() {
-  setInterval(() => {
-    for (var key in localStorage) {
-      if (key.slice(-11) === "._expiredAt") {
-        if (window.localStorage.getItem(key) < new Date().getTime()) {
-          window.localStorage.removeItem(key);
-          window.localStorage.removeItem(key.replace("._expiredAt", ""))
-        }
-      }
-    }
-  }, 2000)
-}
-
-LSExpire();
 
 
 /*
