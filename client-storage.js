@@ -234,7 +234,7 @@ ClientStorage.prototype.set = function (key, value, time) {
     if (this.LSSupport) {
       let expire = new Date().getTime() + time;
       this.ls.setItem(key, this.__escape(value));
-      this.ls.setItem(key + "._expiredAt", expire);
+      this.ls.setItem(key + '._expiredAt', expire);
     } else if (this.cookies) {
       this.cookies.set(key, this.__escape(value), time);
     } else if (!this.LSSupport && !this.cookies) {
