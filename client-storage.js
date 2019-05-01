@@ -158,33 +158,43 @@ function ClientStorage(driver) {
   }
 
   switch (driver) {
-    case 'localStorage':
-      if (this.LSSupport) {
-        this.ls = window.localStorage || localStorage;
-      } else {
-        console.warn('ClientStorage is set to "localStorage", but it is not supported on this browser');
-      }
-      break;
-    case 'cookies':
-      if (this.cookies) {
-        this.LSSupport = false;
-        this.ls = null;
-      } else {
-        console.warn('ClientStorage is set to "cookies", but Cookies is disabled on this browser');
-      }
-      break;
-    case 'js':
-      this.cookies = false;
+  case 'localStorage':
+    if (this.LSSupport) {
+      this.ls = window.localStorage || localStorage;
+      setInterval(() => {
+        for (var key in localStorage) {
+          if (key.includes('._expiredAt')) {
+            if (window.localStorage.getItem(key) < new Date().getTime()) {
+              window.localStorage.removeItem(key);
+              window.localStorage.removeItem(key.replace('._expiredAt', ''))
+            }
+          }
+        }
+      }, 2000)
+    } else {
+      console.warn('ClientStorage is set to "localStorage", but it is not supported on this browser');
+    }
+    break;
+  case 'cookies':
+    if (this.cookies) {
       this.LSSupport = false;
       this.ls = null;
-      break;
-    default:
-      if (this.LSSupport) {
-        this.ls = window.localStorage || localStorage;
-      } else {
-        this.ls = null;
-      }
-      break;
+    } else {
+      console.warn('ClientStorage is set to "cookies", but Cookies is disabled on this browser');
+    }
+    break;
+  case 'js':
+    this.cookies = false;
+    this.LSSupport = false;
+    this.ls = null;
+    break;
+  default:
+    if (this.LSSupport) {
+      this.ls = window.localStorage || localStorage;
+    } else {
+      this.ls = null;
+    }
+    break;
   }
 }
 
@@ -220,24 +230,11 @@ ClientStorage.prototype.get = function (key) {
 @returns {Boolean}
  */
 ClientStorage.prototype.set = function (key, value, time) {
-  function LSExpire() {
-    setInterval(() => {
-      for (var key in localStorage) {
-        if (key.includes('._expiredAt')) {
-          if (window.localStorage.getItem(key) < new Date().getTime()) {
-            window.localStorage.removeItem(key);
-            window.localStorage.removeItem(key.replace('._expiredAt', ''))
-          }
-        }
-      }
-    }, 2000)
-  }
   if (time) {
     if (this.LSSupport) {
       let expire = new Date().getTime() + time;
       this.ls.setItem(key, this.__escape(value));
-      this.ls.setItem(key + '._expiredAt', expire);
-      LSExpire();
+      this.ls.setItem(key + "._expiredAt", expire);
     } else if (this.cookies) {
       this.cookies.set(key, this.__escape(value), time);
     } else if (!this.LSSupport && !this.cookies) {
@@ -257,6 +254,7 @@ ClientStorage.prototype.set = function (key, value, time) {
   }
   return true;
 };
+
 
 
 /*
