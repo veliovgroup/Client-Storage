@@ -11,7 +11,7 @@
 - 👨‍💻 With `String`, `Array`, `Object`, and `Boolean` support as values;
 - ♿ Works with disabled `localStorage` and `cookies`.
 
-![ClientStorage NPM library logo](https://raw.githubusercontent.com/VeliovGroup/Client-Storage/master/ClientStorage-npm-logo.jpg)
+![ClientStorage NPM library logo](https://raw.githubusercontent.com/VeliovGroup/Client-Storage/master/cover.jpg)
 
 ## Install:
 
@@ -45,15 +45,16 @@ import { ClientStorage } from 'meteor/ostrio:cstorage';
 
 ## Usage:
 
-- `ClientStorage.get('key')` - Read a record. If the key doesn't exist a null value will be returned;
-  - `key` - `{String}` - Record's key;
-- `ClientStorage.set('key', value)` - Create/overwrite a value in storage;
-  - `key` - `{String}` - Record's key;
-  - `value` - `{String|[mix]|Boolean|Object}` - Record's value (content);
+- `ClientStorage.get('key')` - Read a record. If the key doesn't exist a *undefined* value will be returned;
+  - `key` - {*String*} - Record's key;
+- `ClientStorage.set('key', value[, ttl])` - Create/overwrite a value in storage;
+  - `key` - {*String*} - Record's key;
+  - `value` - {*String*|[*mix*]|*Boolean*|*Object*} - Record's value (content);
+  - `ttl` - {*Number*} — [Optional] Record's TTL in seconds;
 - `ClientStorage.remove('key')` - Remove a record;
-  - `key` - `{String}` - Record's key;
+  - `key` - {*String*} - Record's key;
 - `ClientStorage.has('key')` - Check whether a record exists, returns a boolean value;
-  - `key` - `{String}` - Record's key;
+  - `key` - {*String*} - Record's key;
 - `ClientStorage.keys()` - Returns an array of all storage keys;
 - `ClientStorage.empty()` - Empty storage (remove all key/value pairs). __Use with caution! (*May remove cookies which weren't set by you*)__.
 
@@ -170,7 +171,14 @@ ClientStorage.empty(); // false
 ### Meteor/Tinytest
 
 ```shell
+# Default
 meteor test-packages ./
+
+# With custom port
+meteor test-packages ./ --port 8888
+
+# With local MongoDB and custom port
+MONGO_URL="mongodb://127.0.0.1:27017/client-storage-tests" meteor test-packages ./ --port 8888
 ```
 
 ## Support this project:
