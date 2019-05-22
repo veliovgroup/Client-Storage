@@ -1,11 +1,15 @@
 # Persistent Client (Browser) Storage
 
-- 😎 No external dependencies;
+<a href="https://www.patreon.com/bePatron?u=20396046">
+  <img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" width="160">
+</a>
+
+- 👷 __100% Tests coverage__;
+- 📦 No external dependencies;
 - 💪 Bulletproof persistent Client storage;
 - ㊗️ With Unicode support for values and keys;
 - 👨‍💻 With `String`, `Array`, `Object`, and `Boolean` support as values;
-- ♿ Works with disabled `localStorage` and `cookies`;
-- 👷‍♂️ __100%__ tests coverage.
+- ♿ Works with disabled `localStorage` and `cookies`.
 
 ![ClientStorage NPM library logo](https://raw.githubusercontent.com/VeliovGroup/Client-Storage/master/ClientStorage-npm-logo.jpg)
 
@@ -169,8 +173,7 @@ ClientStorage.empty(); // false
 meteor test-packages ./
 ```
 
-## Support our open source contribution:
+## Support this project:
 
-This project wouldn't be possible without [ostr.io](https://ostr.io).
-
-Using [ostr.io](https://ostr.io) you are not only [protecting domain names](https://ostr.io/info/domain-names-protection), [monitoring websites and servers](https://ostr.io/info/monitoring), using [Prerendering for better SEO](https://ostr.io/info/prerendering) of your JavaScript website, but support our Open Source activity, and great packages like this one are available for free.
+- [Become a patron](https://www.patreon.com/bePatron?u=20396046) — support my open source contributions with monthly donation
+- Use [ostr.io](https://ostr.io) — [Monitoring](https://snmp-monitoring.com), [Analytics](https://ostr.io/info/web-analytics), [WebSec](https://domain-protection.info), [Web-CRON](https://web-cron.info) and [Pre-rendering](https://prerendering.com) for a website
