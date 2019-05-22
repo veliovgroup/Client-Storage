@@ -130,6 +130,23 @@ Tinytest.add('ClientStorage - keys() / has() / remove() - String', function (tes
   ClientStorage.empty();
 });
 
+Tinytest.addAsync('ClientStorage - set() / get() - 2s TTL (Max-Age; ExpireAt;)', function (test, next) {
+  ClientStorage.empty();
+  var testVal = 'this is test value with 2s TTL';
+  var setRes = ClientStorage.set('teststorage', testVal, 2);
+  test.isTrue(setRes);
+  test.equal(ClientStorage.get('teststorage'), testVal);
+  setTimeout(function () {
+    test.equal(ClientStorage.get('teststorage'), testVal, 'record exists after 1 seconds');
+  }, 1000);
+
+  setTimeout(function () {
+    test.equal(ClientStorage.get('teststorage'), void 0, 'record is gone after 6 seconds');
+    ClientStorage.empty();
+    next();
+  }, 6000);
+});
+
 //////////////
 // Cookies only
 //////////////
@@ -263,6 +280,23 @@ Tinytest.add('ClientStorage - Cookies - keys() / has() / remove() - String', fun
   test.isFalse(ClientStorageCookies.has('teststorageOne'));
   test.isTrue(ClientStorageCookies.has('teststorageTwo'));
   ClientStorageCookies.empty();
+});
+
+Tinytest.addAsync('ClientStorage - Cookies - set() / get() - 2s TTL (Max-Age; ExpireAt;)', function (test, next) {
+  ClientStorageCookies.empty();
+  var testVal = 'this is test value with 2s TTL';
+  var setRes = ClientStorageCookies.set('teststorage', testVal, 2);
+  test.isTrue(setRes);
+  test.equal(ClientStorageCookies.get('teststorage'), testVal);
+  setTimeout(function () {
+    test.equal(ClientStorageCookies.get('teststorage'), testVal, 'record exists after 1 seconds');
+  }, 1000);
+
+  setTimeout(function () {
+    test.equal(ClientStorageCookies.get('teststorage'), void 0, 'record is gone after 6 seconds');
+    ClientStorageCookies.empty();
+    next();
+  }, 6000);
 });
 
 //////////////
@@ -400,6 +434,23 @@ Tinytest.add('ClientStorage - LocalStorage - keys() / has() / remove() - String'
   ClientStorageLS.empty();
 });
 
+Tinytest.addAsync('ClientStorage - LocalStorage - set() / get() - 2s TTL (Max-Age; ExpireAt;)', function (test, next) {
+  ClientStorageLS.empty();
+  var testVal = 'this is test value with 2s TTL';
+  var setRes = ClientStorageLS.set('teststorage', testVal, 2);
+  test.isTrue(setRes);
+  test.equal(ClientStorageLS.get('teststorage'), testVal);
+  setTimeout(function () {
+    test.equal(ClientStorageLS.get('teststorage'), testVal, 'record exists after 1 seconds');
+  }, 1000);
+
+  setTimeout(function () {
+    test.equal(ClientStorageLS.get('teststorage'), void 0, 'record is gone after 6 seconds');
+    ClientStorageLS.empty();
+    next();
+  }, 6000);
+});
+
 //////////////
 // JS only
 //////////////
@@ -511,4 +562,21 @@ Tinytest.add('ClientStorage - JS - keys() / has() / remove() - String', function
   test.isFalse(ClientStorageJS.has('teststorageOne'));
   test.isTrue(ClientStorageJS.has('teststorageTwo'));
   ClientStorageJS.empty();
+});
+
+Tinytest.addAsync('ClientStorage - JS - set() / get() - 2s TTL (Max-Age; ExpireAt;)', function (test, next) {
+  ClientStorageJS.empty();
+  var testVal = 'this is test value with 2s TTL';
+  var setRes = ClientStorageJS.set('teststorage', testVal, 2);
+  test.isTrue(setRes);
+  test.equal(ClientStorageJS.get('teststorage'), testVal);
+  setTimeout(function () {
+    test.equal(ClientStorageJS.get('teststorage'), testVal, 'record exists after 1 seconds');
+  }, 1000);
+
+  setTimeout(function () {
+    test.equal(ClientStorageJS.get('teststorage'), void 0, 'record is gone after 6 seconds');
+    ClientStorageJS.empty();
+    next();
+  }, 6000);
 });
