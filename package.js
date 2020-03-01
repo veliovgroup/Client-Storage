@@ -1,6 +1,6 @@
 Package.describe({
   name: 'ostrio:cstorage',
-  version: '3.0.0',
+  version: '3.0.1',
   summary: 'Bulletproof persistent Client (Browser) storage, works with disabled Cookies and/or localStorage',
   git: 'https://github.com/VeliovGroup/Client-Storage',
   documentation: 'README.md'
@@ -14,6 +14,6 @@ Package.onUse((api) => {
 
 Package.onTest((api) => {
   api.use('tinytest');
-  api.use(['ecmascript', 'ostrio:cstorage'], 'client');
+  api.use('ecmascript', 'client');
   api.addFiles('client-storage-tests.js', 'client');
 });

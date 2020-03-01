@@ -1,4 +1,4 @@
-import { ClientStorage, clientStorage } from 'meteor/ostrio:cstorage';
+import { ClientStorage, clientStorage } from './client-storage.js';
 
 Tinytest.add('ClientStorage - set() / get() / has() - Void (Should fail for localStorage)', function (test) {
   ClientStorage.empty();
