@@ -11,7 +11,8 @@
 - 💪 Bulletproof persistent Client storage;
 - ㊗️ With Unicode support for values and keys;
 - 👨‍💻 With `String`, `Array`, `Object`, and `Boolean` support as values;
-- ♿ Works with disabled `localStorage` and `cookies`.
+- ♿ Works with disabled `localStorage` and `cookies`;
+- Available via [📦 NPM](https://www.npmjs.com/package/ClientStorage) and [☄️ Atmosphere](https://atmospherejs.com/ostrio/cstorage).
 
 ![ClientStorage NPM library logo](https://raw.githubusercontent.com/VeliovGroup/Client-Storage/master/cover.jpg)
 
