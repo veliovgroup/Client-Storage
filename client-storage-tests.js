@@ -1,4 +1,11 @@
+import { Meteor } from 'meteor/meteor';
 import { ClientStorage } from './client-storage.js';
+
+const bound = Meteor.bindEnvironment((callback) => {callback();});
+
+var isServer = function () {
+  return typeof process === 'object' && !process?.browser;
+};
 
 var storages = {
   auto: new ClientStorage(),
@@ -9,6 +16,18 @@ var storages = {
 
 for (var storageName of Object.keys(storages)) {
   var storage = storages[storageName];
+
+  Tinytest.add(`[${storageName}] storage - ensure correct driver`, function (test) {
+    if (isServer()) {
+      test.isTrue(storage.driverName === 'js');
+    } else {
+      if (storageName === 'auto') {
+        test.isTrue(storage.driverName === 'localStorage');
+      } else {
+        test.isTrue(storage.driverName === storageName);
+      }
+    }
+  });
 
   Tinytest.add(`[${storageName}] storage - set() / get() / has() - Void (Should fail for localStorage)`, function (test) {
     storage.empty();
@@ -141,19 +160,21 @@ for (var storageName of Object.keys(storages)) {
   });
 
   Tinytest.addAsync(`[${storageName}] storage - set() / get() - 2s TTL (Max-Age; ExpireAt;)`, function (test, next) {
-    storage.empty();
-    var testVal = 'this is test value with 2s TTL';
-    var setRes = storage.set('teststorage', testVal, 2);
-    test.isTrue(setRes);
-    test.equal(storage.get('teststorage'), testVal);
-    setTimeout(function () {
-      test.equal(storage.get('teststorage'), testVal, 'record exists after 1 seconds');
-    }, 1000);
-
-    setTimeout(function () {
-      test.equal(storage.get('teststorage'), void 0, 'record is gone after 3 seconds');
+    bound(function () {
       storage.empty();
-      next();
-    }, 3000);
+      var testVal = 'this is test value with 2s TTL';
+      var setRes = storage.set('teststorage', testVal, 2);
+      test.isTrue(setRes);
+      test.equal(storage.get('teststorage'), testVal);
+      Meteor.setTimeout(function () {
+        test.equal(storage.get('teststorage'), testVal, 'record exists after 1 seconds');
+      }, 1000);
+
+      Meteor.setTimeout(function () {
+        test.equal(storage.get('teststorage'), void 0, 'record is gone after 3 seconds');
+        storage.empty();
+        next();
+      }, 3000);
+    });
   });
 }
