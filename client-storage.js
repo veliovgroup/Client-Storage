@@ -4,6 +4,10 @@ var CookiesStorage = require('./cookies-storage.js');
 var JSStorage = require('./js-storage.js');
 var BrowserStorage = require('./browser-storage.js');
 
+var isServer = function () {
+  return typeof process === 'object' && !process?.browser;
+};
+
 var debug = function () {
   console.warn.apply(console, arguments);
 };
@@ -20,27 +24,32 @@ function ClientStorage(driverName) {
   var StorageDriver;
   this.driverName = driverName;
 
-  switch (driverName) {
-  case 'localStorage':
-    if (BrowserStorage.isSupported()) {
-      StorageDriver = BrowserStorage;
-    } else {
-      debug('ClientStorage is set to "localStorage", but it is not supported on this browser');
-    }
-    break;
-  case 'cookies':
-    if (CookiesStorage.isSupported()) {
-      StorageDriver = CookiesStorage;
-    } else {
-      debug('ClientStorage is set to "cookies", but CookiesStorage is disabled on this browser');
-    }
-    break;
-  case 'js':
+  if (isServer()) {
     StorageDriver = JSStorage;
     this.driverName = 'js';
-    break;
-  default:
-    break;
+  } else {
+    switch (driverName) {
+    case 'localStorage':
+      if (BrowserStorage.isSupported()) {
+        StorageDriver = BrowserStorage;
+      } else {
+        debug('ClientStorage is set to "localStorage", but it is not supported on this browser');
+      }
+      break;
+    case 'cookies':
+      if (CookiesStorage.isSupported()) {
+        StorageDriver = CookiesStorage;
+      } else {
+        debug('ClientStorage is set to "cookies", but CookiesStorage is disabled on this browser');
+      }
+      break;
+    case 'js':
+      StorageDriver = JSStorage;
+      this.driverName = 'js';
+      break;
+    default:
+      break;
+    }
   }
 
   if (!StorageDriver) {
@@ -56,7 +65,11 @@ function ClientStorage(driverName) {
     }
   }
 
-  this.driver = new StorageDriver(this, document.cookie);
+  if (this.driverName === 'cookies') {
+    this.driver = new StorageDriver(this, document.cookie);
+  } else {
+    this.driver = new StorageDriver(this);
+  }
   Object.assign(this, StorageDriver.prototype);
 }
 
