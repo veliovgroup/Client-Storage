@@ -12,9 +12,10 @@
 - ㊗️ With Unicode support for values and keys;
 - 👨‍💻 With `String`, `Array`, `Object`, and `Boolean` support as values;
 - ♿ Works with disabled `localStorage` and `cookies`;
-- Available via [📦 NPM](https://www.npmjs.com/package/ClientStorage) and [☄️ Atmosphere](https://atmospherejs.com/ostrio/cstorage).
+- ☄️ [Meteor.js-specific docs](https://github.com/veliovgroup/Client-Storage/blob/master/docs/meteor.md)
+- 📦 Available via [NPM](https://www.npmjs.com/package/ClientStorage) and [Atmosphere](https://atmospherejs.com/ostrio/cstorage).
 
-![ClientStorage NPM library logo](https://raw.githubusercontent.com/VeliovGroup/Client-Storage/master/cover.jpg)
+![ClientStorage NPM library logo](https://raw.githubusercontent.com/veliovgroup/Client-Storage/master/cover.jpg)
 
 ## Install:
 
@@ -22,23 +23,11 @@
 npm install --save ClientStorage
 ```
 
-### Install Meteor:
-
-```shell
-# Via Atmosphere
-meteor add ostrio:cstorage
-```
-
-```shell
-# Via NPM
-meteor npm install --save ClientStorage
-```
-
 ### Require:
 
 ```js
-var ClientStorage = require('ClientStorage').ClientStorage;
-var clientStorage = new ClientStorage();
+const ClientStorage = require('ClientStorage').ClientStorage;
+const clientStorage = new ClientStorage();
 ```
 
 ### ES6 Import:
@@ -48,12 +37,6 @@ import { ClientStorage } from 'ClientStorage';
 const clientStorage = new ClientStorage();
 ```
 
-### ES6 Import (Meteor):
-
-```js
-import { ClientStorage } from 'meteor/ostrio:cstorage';
-const clientStorage = new ClientStorage();
-```
 
 ## Usage:
 
@@ -70,7 +53,7 @@ const clientStorage = new ClientStorage();
 - `clientStorage.keys()` - Returns an array of all storage keys;
 - `clientStorage.empty()` - Empty storage (remove all key/value pairs). __Use with caution! (*May remove cookies which weren't set by you*)__.
 
-## Alternate usage:
+## Storage-specific usage:
 
 By default ClientStorage package handle selecting storage driver in the next order (descending priority):
 
@@ -86,7 +69,7 @@ Pass `cookies` as an argument to new instance of `ClientStorage`:
 
 ```js
 const { clientStorage } = require('ClientStorage');
-var cookiesStorage = new ClientStorage('cookies');
+const cookiesStorage = new ClientStorage('cookies');
 cookiesStorage.has('locale'); // false
 cookiesStorage.set('locale', 'en_US'); // true
 ```
@@ -97,7 +80,7 @@ Pass `localStorage` as an argument to new instance of `ClientStorage`:
 
 ```js
 const { clientStorage } = require('ClientStorage');
-var locStorage = new ClientStorage('localStorage');
+const locStorage = new ClientStorage('localStorage');
 locStorage.has('locale'); // false
 locStorage.set('locale', 'en_US'); // true
 ```
@@ -108,48 +91,12 @@ Pass `js` (*in-memory js object*) as an argument to new instance of `ClientStora
 
 ```js
 const { clientStorage } = require('ClientStorage');
-var jsStorage = new ClientStorage('js');
+const jsStorage = new ClientStorage('js');
 jsStorage.has('locale'); // false
 jsStorage.set('locale', 'en_US'); // true
 ```
 
 __Note:__ *All instances are sharing same cookie and localStorage records!*
-
-## [Meteor] Add reactivity:
-
-Persistent `ReactiveVar` implementation:
-
-```js
-import { ReactiveVar } from 'meteor/reactive-var';
-import { ClientStorage } from 'meteor/ostrio:cstorage';
-const clientStorage = new ClientStorage();
-
-const persistentReactive = (name, initial = undefined) => {
-  let reactive;
-  if (clientStorage.has(name)) {
-    reactive = new ReactiveVar(clientStorage.get(name));
-  } else {
-    clientStorage.set(name, initial);
-    reactive = new ReactiveVar(initial);
-  }
-
-  reactive.set = function (newValue) {
-    let oldValue = reactive.curValue;
-    if ((reactive.equalsFunc || ReactiveVar._isEqual)(oldValue, newValue)) {
-      return;
-    }
-    reactive.curValue = newValue;
-    clientStorage.set(name, newValue);
-    reactive.dep.changed();
-  };
-
-  return reactive;
-};
-
-const layout = persistentReactive('ui-layout', 'two-columns');
-layout.get(); // two-columns
-layout.set('single-column');
-```
 
 ## Examples:
 
@@ -180,22 +127,7 @@ clientStorage.empty(); // false
 
 ## Running Tests
 
-1. Clone this package
-2. In Terminal (*Console*) go to directory where package is cloned
-3. Then run:
-
-### Meteor/Tinytest
-
-```shell
-# Default
-meteor test-packages ./
-
-# With custom port
-meteor test-packages ./ --port 8888
-
-# With local MongoDB and custom port
-MONGO_URL="mongodb://127.0.0.1:27017/client-storage-tests" meteor test-packages ./ --port 8888
-```
+Tests are written using Tiny, follow testing instruction in [meteor docs](https://github.com/veliovgroup/Client-Storage/blob/master/docs/meteor.md#running-tests)
 
 ## Support this project:
 

@@ -14,9 +14,9 @@ ClientStorage package can be installed and used within [Meteor.js](https://docs.
 - ㊗️ With Unicode support for values and keys;
 - 👨‍💻 With `String`, `Array`, `Object`, and `Boolean` support as values;
 - ♿ Works with disabled `localStorage` and `cookies`;
-- Available via [📦 NPM](https://www.npmjs.com/package/ClientStorage) and [☄️ Atmosphere](https://atmospherejs.com/ostrio/cstorage).
+- 📦 Available via [NPM](https://www.npmjs.com/package/ClientStorage) and [Atmosphere](https://atmospherejs.com/ostrio/cstorage).
 
-![ClientStorage NPM library logo](https://raw.githubusercontent.com/VeliovGroup/Client-Storage/master/cover.jpg)
+![ClientStorage NPM library logo](https://raw.githubusercontent.com/veliovgroup/Client-Storage/master/cover.jpg)
 
 ### Install
 
@@ -67,7 +67,7 @@ const clientStorage = new ClientStorage();
 
 ## Add reactivity:
 
-Persistent `ReactiveVar` implementation:
+Persistent `ReactiveVar` implementation. For more snippets check out our [`meteor-snippets` repository](https://github.com/veliovgroup/meteor-snippets)
 
 ```js
 import { ReactiveVar } from 'meteor/reactive-var';
