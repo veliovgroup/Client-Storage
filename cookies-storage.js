@@ -1,6 +1,9 @@
 import BaseStorage from './base-storage.js';
 import { createStore, hasOwn } from './helpers.js';
 const DEFAULT_TTL = 3.154e+8; // 10 years
+const IS_SUPPORTED_KEY = '__isSupported__';
+const IS_SUPPORTED_VALUE = 'value';
+const EXPIRATION_COOKIE = 'Thu, 01 Jan 1970 00:00:00 GMT';
 
 /**
  * @locus Client
@@ -125,9 +128,11 @@ class CookiesStorage extends BaseStorage {
       if (typeof document === 'undefined' || typeof navigator === 'undefined') {
         return false;
       }
-      document.cookie = '___isSupported___=value; Max-Age=' + DEFAULT_TTL + '; Path=/';
-      result = document.cookie.includes('___isSupported___');
-      document.cookie = '___isSupported___=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+
+      const marker = IS_SUPPORTED_KEY + '=' + IS_SUPPORTED_VALUE;
+      document.cookie = marker + '; Max-Age=' + Math.floor(DEFAULT_TTL) + '; Path=/';
+      result = new RegExp('(?:^|;\\s*)' + marker + '(?:;|$)').test(document.cookie);
+      document.cookie = IS_SUPPORTED_KEY + '=; Expires=' + EXPIRATION_COOKIE + '; Path=/';
     } catch (_) {
       return false;
     }
