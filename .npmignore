@@ -1,20 +1,35 @@
-.npm
-.git
-.github
-.meteor
+# Local/dev system artifacts
 .DS_Store
-.versions
 .eslintcache
-.versions
-node_modules
 npm-debug.log*
+node_modules/
+.npm/
+.meteor/
 
+# VCS and automation metadata
+.git/
+.github/
+.cursor/
+.cursorignore
+.gitignore
+.meteorignore
+
+# Project-local helper/state files
+.versions
 AGENTS.md
 CHANGELOG.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 HISTORY.md
 
+# Tests/docs/assets not part of npm payload
 client-storage-tests.js
-package.js
+tests/
+docs/
+coverage/
 cover.jpg
+cover.png
+rollup.config.js
+tsconfig.json
+tsconfig.types.json
+jest.config.js

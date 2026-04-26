@@ -1,26 +1,34 @@
-.npm
-node_modules
+# Local/dev system artifacts
 .DS_Store
-.git
-.github
-.gitignore
 .eslintcache
-.eslintrc
-.npmignore
-.meteorignore
-cover.jpg
-cover.png
 npm-debug.log*
+node_modules/
+.npm/
+
+# VCS and editor/AI metadata
+.git/
+.github/
+.cursor/
+.cursorignore
+.gitignore
+.npmignore
+
+# NPM-only metadata/config not required by Atmosphere package
+package.json
+package-lock.json
+rollup.config.js
+tsconfig.json
+tsconfig.types.json
+jest.config.js
+
+# Auxiliary docs/assets/tests not required in Meteor package payload
 AGENTS.md
 CHANGELOG.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 HISTORY.md
-index.cjs
-LICENCE
-LICENSE
-docs
-test
-package.json
-package-lock.json
-client-storage-tests.js
+docs/
+tests/
+coverage/
+cover.jpg
+cover.png

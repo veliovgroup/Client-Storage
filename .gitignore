@@ -4,3 +4,14 @@
 node_modules
 /.cursor/hooks
 /coverage
+
+# Build outputs and generated bundles
+/dist
+*.map
+*.tgz
+
+# Generated type declaration variants (keep canonical index declarations)
+*.d.ts
+*.d.cts
+!index.d.ts
+!index.d.cts
