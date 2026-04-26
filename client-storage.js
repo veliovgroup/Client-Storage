@@ -2,7 +2,7 @@ import BaseStorage from './base-storage.js';
 import CookiesStorage from './cookies-storage.js';
 import JSStorage from './js-storage.js';
 import BrowserStorage from './browser-storage.js';
-import { createStore, hasOwn } from './helpers.js';
+import { createStore } from './helpers.js';
 
 const isServer = () =>
   typeof window === 'undefined' || typeof document === 'undefined';
@@ -15,7 +15,7 @@ const debug = (...args) => {
 const mixin = (target, proto) => {
   if (!proto || proto === Object.prototype) return;
   Object.getOwnPropertyNames(proto).forEach((name) => {
-    if (name !== 'constructor' && !hasOwn(target, name)) {
+    if (name !== 'constructor' && !(name in target)) {
       target[name] = proto[name];
     }
   });
@@ -110,19 +110,7 @@ class ClientStorage {
    * @returns {any|undefined}
    */
   get(key) {
-    if (typeof key !== 'string') {
-      return void 0;
-    }
-
-    if (hasOwn(this.data, key)) {
-      if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
-        this.remove(key);
-        return void 0;
-      }
-      return this.data[key];
-    }
-
-    return void 0;
+    return this.driver.get(key);
   }
 
   /**
@@ -134,18 +122,7 @@ class ClientStorage {
    * @returns {Boolean}
    */
   has(key) {
-    if (typeof key !== 'string') {
-      return false;
-    }
-
-    if (hasOwn(this.data, key)) {
-      if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
-        this.remove(key);
-        return false;
-      }
-      return true;
-    }
-    return false;
+    return this.driver.has(key);
   }
 
   /**
@@ -156,7 +133,7 @@ class ClientStorage {
    * @returns {[String]}
    */
   keys() {
-    return Object.keys(this.data);
+    return this.driver.keys();
   }
 
   /**
