@@ -29,6 +29,16 @@
 - Tests: Jest (NPM/browser), Meteor Tinytest. Run both.
 - Releases: update version, build, test, update README if API changes.
 
+## JavaScript Guidelines
+- Indentation: 2 spaces.
+- Strings: single quotes.
+- Statements: end lines with `;`.
+- Undefined: prefer `void 0` over `undefined` where a value is required (e.g. `return void 0;`).
+- Structure: small pure functions for transforms, formatting, validation. Prefer const + arrow or function expression over loose named function declarations when it clarifies scope and ordering.
+- Performance: single-pass O(n) where possible; avoid repeated work, nested heavy loops on large data; cache derived values when inputs are few and well-defined.
+- Objects/arrays: trailing commas in multiline object/array literals. Extract helpers when nesting gets deep.
+- Ternary expressions: inline unelss multi-level. Avoid multi-level ternary expressions.
+
 ### Guardrails
 - ALWAYS respect .cursorignore: avoid editing, indexing, interacting with its files (node_modules, client-storage.cjs, package-lock.json, *.map, old docs CHANGELOG/HISTORY/CODE_OF_CONDUCT, coverage/, .cursor/*, .npmignore, LICENSE variants, etc.).
 - Read before edit (use Read first). StrReplace/Write for changes. Run ReadLints post-edit, fix issues.
