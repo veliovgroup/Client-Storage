@@ -32,6 +32,7 @@ class CookiesStorage extends BaseStorage {
         if (i < 0) return null;
 
         const rawKey = pair.substring(0, i).trim();
+        if (!rawKey) return null;
         const valPart = pair.substring(i + 1).trim();
         let val = valPart;
 
