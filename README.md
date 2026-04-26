@@ -34,7 +34,49 @@ import { ClientStorage } from 'ClientStorage';
 const storage = new ClientStorage(); // auto or 'localStorage' | 'cookies' | 'js'
 ```
 
-### API
+## Values
+
+Values pass through JSON serialization when stored in persistent drivers.
+
+```js
+const storage = new ClientStorage();
+
+storage.set('locale', 'en');
+storage.set('user', { id: 1, prefs: { theme: 'dark' } }, 3600);
+storage.set('flags', ['beta', 'compact']);
+storage.set('enabled', true);
+storage.set('empty', null);
+storage.set('void', undefined);
+
+storage.get('user');     // { id: 1, prefs: { theme: 'dark' } }
+storage.has('void');     // true
+storage.get('void');     // undefined
+storage.keys();          // non-expired keys
+```
+
+## TTL
+
+```js
+storage.set('session', 'secret', 30);
+
+storage.get('session'); // 'secret'
+// after 30 seconds:
+storage.get('session'); // undefined, record removed
+```
+
+## Drivers
+
+```js
+new ClientStorage();             // auto: localStorage -> cookies -> js
+new ClientStorage('localStorage');
+new ClientStorage('cookies');
+new ClientStorage('js');         // in-memory, per instance
+```
+
+> [!IMPORTANT]
+> **Multiple instances**: Persistent drivers (localStorage/cookies) share data; `js` has isolated context per each instance. Server-side code uses `js` because browser storage APIs do not exist there.
+
+## API
 
 - `storage.set(key: string, value: any, ttl?: number): boolean` — Store. TTL in seconds.
 - `storage.get(key: string): any | undefined` — Read. Auto-removes expired. `undefined` if missing.
@@ -44,9 +86,28 @@ const storage = new ClientStorage(); // auto or 'localStorage' | 'cookies' | 'js
 - `storage.keys(): string[]` — Current keys.
 - `storage.driverName` — Active driver.
 
-**Drivers exported**: `ClientStorage`, `BaseStorage`, `BrowserStorage`, `CookiesStorage`, `JSStorage`.
+```ts
+storage.set(key: string, value: any, ttl?: number): boolean
+storage.get(key: string): any
+storage.has(key: string): boolean
+storage.keys(): string[]
+storage.remove(key?: string): boolean
+storage.empty(): boolean
+storage.driverName: 'localStorage' | 'cookies' | 'js'
+```
 
 **TS**: Full types included. See `index.d.ts`. Use with `import type { ClientStorage } from 'ClientStorage';`
+
+- `ttl` is seconds.
+- `get()` and `has()` remove expired records before returning.
+- `keys()` returns non-expired keys.
+- `remove(key)` removes one record.
+- `remove()` and `empty()` remove all records known to selected backend.
+- `js` driver is in-memory and isolated per `ClientStorage` instance.
+- `localStorage` and cookies persist across instances on same origin.
+
+> [!TIP]
+> **Drivers exported**: `ClientStorage`, `BaseStorage`, `BrowserStorage`, `CookiesStorage`, `JSStorage`.
 
 ### Examples
 
@@ -64,20 +125,6 @@ console.log(storage.keys()); // ['locale', 'user', 'flag']
 storage.remove('locale');
 storage.empty(); // clears all
 ```
-
-**With TTL**:
-```js
-storage.set('session', 'secret', 30); // expires in 30s
-// After expiry: get/has return undefined, auto-removed.
-```
-
-**Specific driver**:
-```js
-const cookiesOnly = new ClientStorage('cookies');
-const memOnly = new ClientStorage('js');
-```
-
-**Multiple instances**: Persistent drivers (localStorage/cookies) share data; js is per-instance.
 
 ## Tests
 
