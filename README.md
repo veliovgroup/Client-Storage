@@ -136,7 +136,7 @@ npm test
 
 100% functional coverage. See `client-storage-tests.js`, `tests/client-storage.test.js`.
 
-## Support this project:
+## Support this project
 
 - Upload and share files using [☄️ meteor-files.com](https://meteor-files.com/?ref=github-clientstorage-repo-footer) — Continue interrupted file uploads without losing any progress. There is nothing that will stop Meteor from delivering your file to the desired destination
 - Use [▲ ostr.io](https://ostr.io?ref=github-clientstorage-repo-footer) for [Server Monitoring](https://snmp-monitoring.com), [Web Analytics](https://ostr.io/info/web-analytics?ref=github-clientstorage-repo-footer), [WebSec](https://domain-protection.info), [Web-CRON](https://web-cron.info) and [SEO Pre-rendering](https://prerendering.com) of a website
