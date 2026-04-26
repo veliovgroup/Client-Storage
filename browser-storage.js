@@ -1,48 +1,50 @@
-var helpers = require('./helpers.js');
-var TTL_SUFFIX = '.___exp';
+var BaseStorage = require('./base-storage.js');
 var localStorageDriver;
 
 /**
  * @locus Client
  * @class BrowserStorage
- * @summary localStorage driven storage
+ * @summary localStorage driven storage. Extends BaseStorage for shared cache/TTL/get/has logic.
  */
 function BrowserStorage(clientStorage) {
-  if (clientStorage) {
-    this.data = clientStorage.data;
-    this.ttlData = clientStorage.ttlData;
-  } else {
-    this.data = {};
-    this.ttlData = {};
-  }
+  BaseStorage.call(this, clientStorage);
   this.init();
 }
+
+BrowserStorage.prototype = Object.create(BaseStorage.prototype);
+BrowserStorage.prototype.constructor = BrowserStorage;
 
 /**
  * @locus Client
  * @memberOf BrowserStorage
  * @name init
- * @summary parse document.cookie string
+ * @summary Load from localStorage, cleanup expired TTL items, populate data/ttlData. Fixes TTL key mapping bug.
  * @returns {void 0}
  */
 BrowserStorage.prototype.init = function () {
   localStorageDriver = window.localStorage || localStorage;
+  var TTL_SUFFIX = '.___exp';
 
-  // CLEAN UP EXPIRED ITEMS
+  // CLEAN UP EXPIRED ITEMS + populate data/ttlData (uses BaseStorage cache)
   var i = localStorageDriver.length;
-  var key;
   while (i--) {
-    key = localStorageDriver.key(i);
-    if (typeof key === 'string' && !!~key.indexOf(TTL_SUFFIX)) {
-      var expireAt = parseInt(localStorageDriver.getItem(key));
-      if (expireAt <= Date.now()) {
+    var key = localStorageDriver.key(i);
+    if (typeof key !== 'string') continue;
+
+    if (key.indexOf(TTL_SUFFIX) !== -1) {
+      var expireAt = parseInt(localStorageDriver.getItem(key), 10);
+      var mainKey = key.replace(TTL_SUFFIX, '');
+      if (expireAt <= Date.now() || isNaN(expireAt)) {
         localStorageDriver.removeItem(key);
-        localStorageDriver.removeItem(key.replace(TTL_SUFFIX, ''));
+        localStorageDriver.removeItem(mainKey);
       } else {
-        this.ttlData[key] = expireAt;
+        this.ttlData[mainKey] = expireAt;
       }
     } else {
-      this.data[key] = this.unescape(localStorageDriver.getItem(key));
+      var item = localStorageDriver.getItem(key);
+      if (item !== null) {
+        this.data[key] = this.unescape(item);
+      }
     }
   }
 };
@@ -51,21 +53,17 @@ BrowserStorage.prototype.init = function () {
  * @locus Client
  * @memberOf BrowserStorage
  * @name set
- * @param {String} key   - The name of the cookie to create/overwrite
- * @param {String} value - The value of the cookie
- * @param {Number} ttl   - BrowserStorage TTL (e.g. max-age) in seconds
- * @summary Create/overwrite a cookie.
+ * @param {String} key - Key to create/overwrite
+ * @param {any} value - Value (string, object, array, boolean, null, undefined supported via JSON)
+ * @param {Number} [ttl] - TTL in seconds
+ * @summary Create/overwrite record in localStorage (with TTL companion key).
  * @returns {Boolean}
  */
 BrowserStorage.prototype.set = function (key, value, ttl) {
-  if (typeof key === 'string') {
-    this.data[key] = value;
+  if (BaseStorage.prototype.set.call(this, key, value, ttl)) {
     localStorageDriver.setItem(key, this.escape(value));
-
-    if (typeof ttl === 'number') {
-      var expireAt = Date.now() + (ttl * 1000);
-      this.ttlData[key] = expireAt;
-      localStorageDriver.setItem(key + TTL_SUFFIX, expireAt);
+    if (typeof ttl === 'number' && this.ttlData[key]) {
+      localStorageDriver.setItem(key + this.TTL_SUFFIX, this.ttlData[key]);
     }
     return true;
   }
@@ -81,56 +79,20 @@ BrowserStorage.prototype.set = function (key, value, ttl) {
  * @returns {Boolean}
  */
 BrowserStorage.prototype.remove = function (key) {
-  if (typeof key === 'string' && this.data.hasOwnProperty(key)) {
+  var result = BaseStorage.prototype.remove.call(this, key);
+  if (typeof key === 'string') {
     localStorageDriver.removeItem(key);
-    localStorageDriver.removeItem(key + TTL_SUFFIX);
-    delete this.data[key];
-    delete this.ttlData[key];
-    return true;
+    localStorageDriver.removeItem(key + this.TTL_SUFFIX);
   }
-
-  if (key === void 0) {
-    var keys = this.keys();
-    if (keys.length > 0 && keys[0] !== '') {
-      for (var i = 0; i < keys.length; i++) {
-        this.remove(keys[i]);
-      }
-      return true;
-    }
-  }
-
-  return false;
-};
-
-/**
- * @locus Client
- * @memberOf BrowserStorage
- * @name escape
- * @param {mix} val - The value to escape
- * @summary Escape and stringify the value
- * @returns {String}
- */
-BrowserStorage.prototype.escape = function (val) {
-  return escape(helpers.escape(val));
-};
-
-/**
- * @locus Client
- * @memberOf BrowserStorage
- * @name unescape
- * @param {String} val - The string to unescape
- * @summary Escape and restore original data-type of the value
- * @returns {mix}
- */
-BrowserStorage.prototype.unescape = function (val) {
-  return helpers.unescape(unescape(val));
+  // For empty(), base already looped and called remove on each key (storage cleaned via override)
+  return result;
 };
 
 /**
  * @locus Client
  * @memberOf BrowserStorage
  * @name isSupported
- * @summary Returns `true` is this storage driver is supported
+ * @summary Returns true if localStorage is supported (handles Private mode in Safari).
  * @returns {Boolean}
  */
 BrowserStorage.isSupported = function () {

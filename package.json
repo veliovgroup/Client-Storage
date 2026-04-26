@@ -1,49 +1,63 @@
 {
   "name": "ClientStorage",
-  "version": "4.0.1",
-  "description": "Bulletproof persistent browser storage, works with disabled Cookies and/or localStorage",
+  "version": "5.0.0",
+  "description": "Bulletproof persistent browser storage with pluggable drivers (localStorage, cookies, in-memory). Full TS support, TTL, Unicode, no deps. Meteor + NPM compatible.",
   "main": "./client-storage.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./client-storage.js",
+      "require": "./client-storage.js"
+    }
+  },
+  "files": [
+    "client-storage.js",
+    "browser-storage.js",
+    "cookies-storage.js",
+    "js-storage.js",
+    "helpers.js",
+    "index.d.ts",
+    "README.md",
+    "docs/",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --config jest.config.js",
+    "test:meteor": "meteor test-packages ./",
+    "build": "tsc --noEmit",
+    "lint": "echo \"No linter configured\"",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "browser",
     "persistent",
-    "bulletproof",
-    "browser",
     "storage",
-    "localStorage",
-    "local storage",
-    "cookie",
+    "localstorage",
     "cookies",
-    "disabled cookies",
-    "client",
+    "local-storage",
+    "client-storage",
+    "ttl",
     "meteor",
-    "meteorjs"
-  ],
-  "tags": [
-    "browser",
-    "persistent",
-    "bulletproof",
-    "browser",
-    "storage",
-    "localStorage",
-    "local storage",
-    "cookie",
-    "cookies",
-    "disabled cookies",
-    "client",
-    "meteor",
-    "meteorjs"
+    "typescript",
+    "jsdom"
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/veliovgroup/Client-Storage.git"
+    "url": "git+https://github.com/veliovgroup/Client-Storage.git"
   },
   "bugs": {
     "url": "https://github.com/veliovgroup/Client-Storage/issues"
   },
-  "homepage": "https://github.com/veliovgroup/Client-Storage",
+  "homepage": "https://github.com/veliovgroup/Client-Storage#readme",
   "author": "dr.dimitru (https://veliovgroup.com)",
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0"
+  }
 }

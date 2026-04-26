@@ -1,42 +1,14 @@
-[![support](https://img.shields.io/badge/support-GitHub-white)](https://github.com/sponsors/dr-dimitru)
-[![support](https://img.shields.io/badge/support-PayPal-white)](https://paypal.me/veliovgroup)
-<a href="https://ostr.io/info/built-by-developers-for-developers">
-  <img src="https://ostr.io/apple-touch-icon-60x60.png" height="20">
-</a>
+# Meteor.js Usage for ClientStorage
 
-ClientStorage package can be installed and used within [Meteor.js](https://docs.meteor.com/) as [NPM](https://www.npmjs.com/package/ClientStorage) or [Atmosphere](https://atmospherejs.com/ostrio/cstorage) package
-
-# Persistent Browser (Client) Storage
-
-- 👷 __100% Tests coverage__;
-- 📦 No external dependencies;
-- 💪 Bulletproof persistent Client storage;
-- ㊗️ With Unicode support for values and keys;
-- 👨‍💻 With `String`, `Array`, `Object`, and `Boolean` support as values;
-- ♿ Works with disabled `localStorage` and `cookies`;
-- 📦 Available via [NPM](https://www.npmjs.com/package/ClientStorage) and [Atmosphere](https://atmospherejs.com/ostrio/cstorage).
-
-![ClientStorage NPM library logo](https://raw.githubusercontent.com/veliovgroup/Client-Storage/master/cover.jpg)
-
-### Install
-
-As Meteor package
-
-```shell
-# Via Atmosphere
+## Install
+```sh
 meteor add ostrio:cstorage
+# or meteor npm install --save ClientStorage
 ```
 
-As NPM package
+## Import
 
-```shell
-# Via NPM
-meteor npm install --save ClientStorage
-```
-
-### Import:
-
-As Meteor package
+As Meteor/Atmosphere package
 
 ```js
 import { ClientStorage } from 'meteor/ostrio:cstorage';
@@ -50,55 +22,38 @@ import { ClientStorage } from 'ClientStorage';
 const clientStorage = new ClientStorage();
 ```
 
-## Usage:
+**Full API and examples in [README.md](../README.md).**
 
-- `clientStorage.get('key')` - Read a record. If the key doesn't exist a *undefined* value will be returned;
-  - `key` - {*String*} - Record's key;
-- `clientStorage.set('key', value[, ttl])` - Create/overwrite a value in storage;
-  - `key` - {*String*} - Record's key;
-  - `value` - {*String*|[*mix*]|*Boolean*|*Object*} - Record's value (content);
-  - `ttl` - {*Number*} — [Optional] Record's TTL in seconds;
-- `clientStorage.remove('key')` - Remove a record;
-  - `key` - {*String*} - Record's key;
-- `clientStorage.has('key')` - Check whether a record exists, returns a boolean value;
-  - `key` - {*String*} - Record's key;
-- `clientStorage.keys()` - Returns an array of all storage keys;
-- `clientStorage.empty()` - Empty storage (remove all key/value pairs). __Use with caution! (*May remove cookies which weren't set by you*)__.
+## Reactivity with ReactiveVar
 
-## Add reactivity:
-
-Persistent `ReactiveVar` implementation. For more snippets check out our [`meteor-snippets` repository](https://github.com/veliovgroup/meteor-snippets)
+Improved wrapper (uses storage for persistence):
 
 ```js
 import { ReactiveVar } from 'meteor/reactive-var';
+import { Tracker } from 'meteor/tracker';
 import { ClientStorage } from 'meteor/ostrio:cstorage';
-const clientStorage = new ClientStorage();
 
-const persistentReactive = (name, initial = undefined) => {
-  let reactive;
-  if (clientStorage.has(name)) {
-    reactive = new ReactiveVar(clientStorage.get(name));
-  } else {
-    clientStorage.set(name, initial);
-    reactive = new ReactiveVar(initial);
-  }
+const persistentReactive = (key, initial = undefined) => {
+  const storage = new ClientStorage();
+  const rv = new ReactiveVar(
+    storage.has(key) ? storage.get(key) : initial
+  );
 
-  reactive.set = function (newValue) {
-    let oldValue = reactive.curValue;
-    if ((reactive.equalsFunc || ReactiveVar._isEqual)(oldValue, newValue)) {
-      return;
-    }
-    reactive.curValue = newValue;
-    clientStorage.set(name, newValue);
-    reactive.dep.changed();
+  rv.set = function (newValue) {
+    const oldValue = rv.curValue;
+    if (Tracker.nonreactive(() => rv.equals(oldValue, newValue))) return;
+    rv.curValue = newValue;
+    storage.set(key, newValue);
+    rv.dep.changed();
   };
 
-  return reactive;
+  return rv;
 };
 
+// Usage
 const layout = persistentReactive('ui-layout', 'two-columns');
-layout.get(); // two-columns
-layout.set('single-column');
+console.log(layout.get()); // two-columns
+layout.set('single-column'); // persists + reactive
 ```
 
 ## Running Tests
@@ -119,6 +74,10 @@ meteor test-packages ./ --port 8888
 # With local MongoDB and custom port
 MONGO_URL="mongodb://127.0.0.1:27017/client-storage-tests" meteor test-packages ./ --port 8888
 ```
+
+Uses Tinytest. Covers all drivers, TTL async, Unicode, objects, edges. Jest for NPM side.
+
+See [README.md](../README.md) for general usage.
 
 ## Support this project:
 

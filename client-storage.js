@@ -1,11 +1,12 @@
 'use strict';
 
+var BaseStorage = require('./base-storage.js');
 var CookiesStorage = require('./cookies-storage.js');
 var JSStorage = require('./js-storage.js');
 var BrowserStorage = require('./browser-storage.js');
 
 var isServer = function () {
-  return typeof process === 'object' && !process?.browser;
+  return typeof process === 'object' && process !== null && typeof process.browser === 'undefined';
 };
 
 var debug = function () {
@@ -15,8 +16,8 @@ var debug = function () {
 /**
  * @locus Client
  * @class ClientStorage
- * @param driverName {Sting} - Preferable driver `localStorage` or `cookies`
- * @summary Implement boilerplate Client storage functions, localStorage with fall-back to CookiesStorage
+ * @param {String} [driverName] - Preferred driver: 'localStorage' | 'cookies' | 'js'
+ * @summary Client storage facade with pluggable drivers (localStorage > cookies > js in-memory). Supports TTL, JSON values, Unicode. Server uses JSStorage.
  */
 function ClientStorage(driverName) {
   this.data = {};
@@ -70,7 +71,16 @@ function ClientStorage(driverName) {
   } else {
     this.driver = new StorageDriver(this);
   }
-  Object.assign(this, StorageDriver.prototype);
+  // Mix methods from driver prototype chain (BaseStorage + driver overrides) to preserve API
+  ;(function mixin(target, proto) {
+    if (!proto) return;
+    Object.getOwnPropertyNames(proto).forEach(function (name) {
+      if (name !== 'constructor' && !target.hasOwnProperty(name)) {
+        target[name] = proto[name];
+      }
+    });
+    mixin(target, Object.getPrototypeOf(proto));
+  })(this, StorageDriver.prototype);
 }
 
 /**
@@ -81,13 +91,26 @@ function ClientStorage(driverName) {
  * @summary Read a stored value by key. If the key doesn't exist a void 0 (undefined) value will be returned.
  * @returns {String|Mix|void 0}
  */
+ClientStorage.prototype.set = function (key, value, ttl) {
+  // Implemented by selected driver prototype (mixed via Object.assign)
+  return this.driver.set ? this.driver.set(key, value, ttl) : false; // fallback
+};
+
+/**
+ * @locus Client
+ * @memberOf ClientStorage
+ * @name get
+ * @param {String} key - The key of the value to read
+ * @summary Read a stored value by key. Returns undefined if not exists or expired (auto-removes expired).
+ * @returns {any|undefined}
+ */
 ClientStorage.prototype.get = function (key) {
   if (typeof key !== 'string') {
     return void 0;
   }
 
   if (this.data.hasOwnProperty(key)) {
-    if (this.ttlData[key] <= Date.now()) {
+    if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
       this.remove(key);
       return void 0;
     }
@@ -111,7 +134,7 @@ ClientStorage.prototype.has = function (key) {
   }
 
   if (this.data.hasOwnProperty(key)) {
-    if (this.ttlData[key] <= Date.now()) {
+    if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
       this.remove(key);
       return false;
     }
@@ -142,6 +165,7 @@ ClientStorage.prototype.empty = function () {
   return this.remove();
 };
 
+module.exports.BaseStorage = BaseStorage;
 module.exports.JSStorage = JSStorage;
 module.exports.BrowserStorage = BrowserStorage;
 module.exports.CookiesStorage = CookiesStorage;

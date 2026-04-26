@@ -1,62 +1,55 @@
-var helpers = require('./helpers.js');
+var BaseStorage = require('./base-storage.js');
 var DEFAULT_TTL = 3.154e+8; // 10 years
-var TTL_SUFFIX = '.___exp';
 
 /**
  * @locus Client
  * @class CookiesStorage
- * @param cookieString {String} - Current cookies as String
- * @summary Cookie-driven storage
+ * @summary Cookie-driven storage. Extends BaseStorage.
  */
 function CookiesStorage(clientStorage, cookieString) {
-  if (clientStorage) {
-    this.data = clientStorage.data;
-    this.ttlData = clientStorage.ttlData;
-  } else {
-    this.data = {};
-    this.ttlData = {};
-  }
+  BaseStorage.call(this, clientStorage);
 
   if (cookieString && typeof cookieString === 'string') {
     this.init(cookieString);
   }
 }
 
+CookiesStorage.prototype = Object.create(BaseStorage.prototype);
+CookiesStorage.prototype.constructor = CookiesStorage;
+
 /**
  * @locus Client
  * @memberOf CookiesStorage
  * @name init
- * @param cookieString {String} - Current cookies as String
- * @summary parse document.cookie string
+ * @param {String} [cookieString] - document.cookie string to parse on init.
+ * @summary Parse cookies into data/ttlData (uses BaseStorage cache, fixes TTL mapping).
  * @returns {void 0}
  */
 CookiesStorage.prototype.init = function (cookieString) {
   if (typeof cookieString === 'string' && cookieString.length) {
     var self = this;
-    var i;
-    var key;
-    var val;
-
+    var TTL_SUFFIX = '.___exp';
     cookieString.split(/; */).forEach(function (pair) {
-      i = pair.indexOf('=');
-      if (i < 0) {
-        return;
-      }
+      var i = pair.indexOf('=');
+      if (i < 0) return;
 
-      key = this.unescape(pair.substr(0, i).trim());
-      val = pair.substr(++i, pair.length).trim();
+      var keyPart = pair.substr(0, i).trim();
+      var valPart = pair.substr(i + 1).trim();
+      var key = self.unescape(keyPart);
+      var val = valPart;
 
-      if (val[0] === '"') {
+      if (val && val[0] === '"') {
         val = val.slice(1, -1);
       }
 
       if (self.data[key] === void 0) {
-        if (typeof key === 'string' && !!~key.indexOf(TTL_SUFFIX)) {
-          self.ttlData[key] = parseInt(val);
+        if (typeof key === 'string' && key.indexOf(TTL_SUFFIX) !== -1) {
+          var mainKey = key.replace(new RegExp(TTL_SUFFIX + '$'), '');
+          self.ttlData[mainKey] = parseInt(val, 10) || 0;
         } else {
           try {
-            self.data[key] = this.unescape(val);
-          } catch (e) {
+            self.data[key] = self.unescape(val);
+          } catch (_) {
             self.data[key] = val;
           }
         }
@@ -69,23 +62,21 @@ CookiesStorage.prototype.init = function (cookieString) {
  * @locus Client
  * @memberOf CookiesStorage
  * @name set
- * @param {String} key   - The name of the cookie to create/overwrite
- * @param {String} value - The value of the cookie
- * @param {Number} ttl   - CookiesStorage TTL (e.g. max-age) in seconds
- * @summary Create/overwrite a cookie.
+ * @param {String} key - Key to create/overwrite
+ * @param {any} value - Value (string, object, array, boolean, null, undefined supported via JSON)
+ * @param {Number} [ttl] - TTL in seconds (defaults to ~10 years)
+ * @summary Create/overwrite record as cookie (with separate TTL cookie).
  * @returns {Boolean}
  */
 CookiesStorage.prototype.set = function (key, value, _ttl) {
-  var ttl = _ttl;
-  if (!ttl || typeof ttl !== 'number') {
-    ttl = DEFAULT_TTL;
-  }
+  var ttl = (typeof _ttl === 'number' && _ttl > 0) ? _ttl : DEFAULT_TTL;
 
-  if (typeof key === 'string') {
-    document.cookie = this.escape(key) + '=' + this.escape(value) + '; Max-Age=' + ttl + '; Path=/';
-    this.data[key] = value;
-    this.ttlData[key] = Date.now() + (ttl * 1000);
-    document.cookie = this.escape(key) + TTL_SUFFIX + '=' + this.ttlData[key] + '; Max-Age=' + ttl + '; Path=/';
+  if (BaseStorage.prototype.set.call(this, key, value, ttl)) {
+    var escapedKey = this.escape(key);
+    var escapedValue = this.escape(value);
+    var expireAt = this.ttlData[key];
+    document.cookie = escapedKey + '=' + escapedValue + '; Max-Age=' + ttl + '; Path=/';
+    document.cookie = escapedKey + this.TTL_SUFFIX + '=' + expireAt + '; Max-Age=' + ttl + '; Path=/';
     return true;
   }
   return false;
@@ -100,48 +91,13 @@ CookiesStorage.prototype.set = function (key, value, _ttl) {
  * @returns {Boolean}
  */
 CookiesStorage.prototype.remove = function (key) {
-  if (typeof key === 'string' && this.data.hasOwnProperty(key)) {
-    delete this.data[key];
-    delete this.ttlData[key];
-    document.cookie = this.escape(key) + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
-    document.cookie = this.escape(key) + TTL_SUFFIX + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
-    return true;
+  var result = BaseStorage.prototype.remove.call(this, key);
+  if (typeof key === 'string') {
+    var escapedKey = this.escape(key);
+    document.cookie = escapedKey + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+    document.cookie = escapedKey + this.TTL_SUFFIX + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
   }
-
-  if (key === void 0) {
-    var keys = Object.keys(this.data);
-    if (keys.length > 0 && keys[0] !== '') {
-      for (var i = 0; i < keys.length; i++) {
-        this.remove(keys[i]);
-      }
-      return true;
-    }
-  }
-  return false;
-};
-
-/**
- * @locus Client
- * @memberOf CookiesStorage
- * @name escape
- * @param {mix} val - The value to escape
- * @summary Escape and stringify the value
- * @returns {String}
- */
-CookiesStorage.prototype.escape = function (val) {
-  return escape(helpers.escape(val));
-};
-
-/**
- * @locus Client
- * @memberOf CookiesStorage
- * @name unescape
- * @param {String} val - The string to unescape
- * @summary Escape and restore original data-type of the value
- * @returns {mix}
- */
-CookiesStorage.prototype.unescape = function (val) {
-  return helpers.unescape(unescape(val));
+  return result;
 };
 
 /**
@@ -157,7 +113,7 @@ CookiesStorage.isSupported = function () {
     document.cookie = '___isSupported___=value; Max-Age=' + DEFAULT_TTL + '; Path=/';
     result = document.cookie.includes('___isSupported___');
     document.cookie = '___isSupported___=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
-  } catch (e) {
+  } catch (_) {
     return false;
   }
   return result && navigator.cookieEnabled;

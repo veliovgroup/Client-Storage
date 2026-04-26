@@ -1,10 +1,13 @@
+# ClientStorage
+
+Bulletproof persistent browser storage. Drivers: localStorage > cookies > js (in-memory). TTL, JSON values (objects/arrays/booleans/null/undefined), Unicode. No deps. Meteor + NPM + full TS support.
+
 [![support](https://img.shields.io/badge/support-GitHub-white)](https://github.com/sponsors/dr-dimitru)
 [![support](https://img.shields.io/badge/support-PayPal-white)](https://paypal.me/veliovgroup)
-<a href="https://ostr.io/info/built-by-developers-for-developers">
-  <img src="https://ostr.io/apple-touch-icon-60x60.png" height="20">
-</a>
+<a href="https://ostr.io/info/built-by-developers-for-developers?ref=github-clientstorage-repo-top"><img src="https://ostr.io/apple-touch-icon-60x60.png" height="20"></a>
+<a href="https://meteor-files.com/?ref=github-clientstorage-repo-top"><img src="https://meteor-files.com/apple-touch-icon-60x60.png" height="20"></a>
 
-# Persistent Browser (Client) Storage
+## Persistent Browser (Client) Storage
 
 - 👷 __100% Tests coverage__;
 - 📦 No external dependencies;
@@ -17,120 +20,81 @@
 
 ![ClientStorage NPM library logo](https://raw.githubusercontent.com/veliovgroup/Client-Storage/master/cover.jpg)
 
-## Install:
+## Install
+
+```sh
+npm install ClientStorage
+```
+
+## Usage
+
+```js
+// NPM / TS / ESM
+import { ClientStorage } from 'ClientStorage';
+const storage = new ClientStorage(); // auto or 'localStorage' | 'cookies' | 'js'
+```
+
+### API
+
+- `storage.set(key: string, value: any, ttl?: number): boolean` — Store. TTL in seconds.
+- `storage.get(key: string): any | undefined` — Read. Auto-removes expired. `undefined` if missing.
+- `storage.has(key: string): boolean` — Exists and not expired.
+- `storage.remove(key?: string): boolean` — Remove key or all (empty).
+- `storage.empty(): boolean` — Alias for remove(). **Caution**: clears tracked keys; may affect other cookies if no prefix.
+- `storage.keys(): string[]` — Current keys.
+- `storage.driverName` — Active driver.
+
+**Drivers exported**: `ClientStorage`, `BaseStorage`, `BrowserStorage`, `CookiesStorage`, `JSStorage`.
+
+**TS**: Full types included. See `index.d.ts`. Use with `import type { ClientStorage } from 'ClientStorage';`
+
+### Examples
+
+```js
+const storage = new ClientStorage();
+
+storage.set('locale', 'en');
+storage.set('user', { id: 1, prefs: { theme: 'dark' } }, 3600); // 1hr TTL
+storage.set('flag', true);
+
+console.log(storage.get('user')); // {id:1, prefs:...}
+console.log(storage.has('locale')); // true
+console.log(storage.keys()); // ['locale', 'user', 'flag']
+
+storage.remove('locale');
+storage.empty(); // clears all
+```
+
+**With TTL**:
+```js
+storage.set('session', 'secret', 30); // expires in 30s
+// After expiry: get/has return undefined, auto-removed.
+```
+
+**Specific driver**:
+```js
+const cookiesOnly = new ClientStorage('cookies');
+const memOnly = new ClientStorage('js');
+```
+
+**Multiple instances**: Persistent drivers (localStorage/cookies) share data; js is per-instance.
+
+## Tests
+
+- **Jest** (NPM): `npm test` — covers API, edges, errors, drivers, BaseStorage.
 
 ```shell
-npm install --save ClientStorage
+npm test
 ```
 
-### Require:
-
-```js
-const ClientStorage = require('ClientStorage').ClientStorage;
-const clientStorage = new ClientStorage();
-```
-
-### ES6 Import:
-
-```js
-import { ClientStorage } from 'ClientStorage';
-const clientStorage = new ClientStorage();
-```
-
-
-## Usage:
-
-- `clientStorage.get('key')` - Read a record. If the key doesn't exist a *undefined* value will be returned;
-  - `key` - {*String*} - Record's key;
-- `clientStorage.set('key', value[, ttl])` - Create/overwrite a value in storage;
-  - `key` - {*String*} - Record's key;
-  - `value` - {*String*|[*mix*]|*Boolean*|*Object*} - Record's value (content);
-  - `ttl` - {*Number*} — [Optional] Record's TTL in seconds;
-- `clientStorage.remove('key')` - Remove a record;
-  - `key` - {*String*} - Record's key;
-- `clientStorage.has('key')` - Check whether a record exists, returns a boolean value;
-  - `key` - {*String*} - Record's key;
-- `clientStorage.keys()` - Returns an array of all storage keys;
-- `clientStorage.empty()` - Empty storage (remove all key/value pairs). __Use with caution! (*May remove cookies which weren't set by you*)__.
-
-## Storage-specific usage:
-
-By default ClientStorage package handle selecting storage driver in the next order (descending priority):
-
-1. `localStorage`
-2. `cookies`
-3. `js` (*JS Object driven storage*)
-
-To alter priority pass "preferred driver" to `new ClientStorage(driverName)` constructor.
-
-### Use `cookies` only:
-
-Pass `cookies` as an argument to new instance of `ClientStorage`:
-
-```js
-const { clientStorage } = require('ClientStorage');
-const cookiesStorage = new ClientStorage('cookies');
-cookiesStorage.has('locale'); // false
-cookiesStorage.set('locale', 'en_US'); // true
-```
-
-### Use `localStorage` only:
-
-Pass `localStorage` as an argument to new instance of `ClientStorage`:
-
-```js
-const { clientStorage } = require('ClientStorage');
-const locStorage = new ClientStorage('localStorage');
-locStorage.has('locale'); // false
-locStorage.set('locale', 'en_US'); // true
-```
-
-### Use `js` only:
-
-Pass `js` (*in-memory js object*) as an argument to new instance of `ClientStorage`:
-
-```js
-const { clientStorage } = require('ClientStorage');
-const jsStorage = new ClientStorage('js');
-jsStorage.has('locale'); // false
-jsStorage.set('locale', 'en_US'); // true
-```
-
-__Note:__ *All instances are sharing same cookie and localStorage records!*
-
-## Examples:
-
-```js
-const clientStorage = new (require('ClientStorage').ClientStorage);
-
-clientStorage.set('locale', 'en'); // true
-clientStorage.set('country', 'usa'); // true
-clientStorage.set('gender', 'male'); // true
-
-clientStorage.get('gender'); // male
-
-clientStorage.has('locale'); // true
-clientStorage.has('city'); // false
-
-clientStorage.keys(); // ['locale', 'country', 'gender']
-
-clientStorage.remove('locale'); // true
-clientStorage.get('locale'); // undefined
-
-clientStorage.keys(); // ['country', 'gender']
-
-clientStorage.empty(); // true
-clientStorage.keys(); // []
-
-clientStorage.empty(); // false
-```
-
-## Running Tests
-
-Tests are written using Tiny, follow testing instruction in [meteor docs](https://github.com/veliovgroup/Client-Storage/blob/master/docs/meteor.md#running-tests)
+100% functional coverage. See `client-storage-tests.js`, `tests/client-storage.test.js`.
 
 ## Support this project:
 
+- Upload and share files using [☄️ meteor-files.com](https://meteor-files.com/?ref=github-clientstorage-repo-footer) — Continue interrupted file uploads without losing any progress. There is nothing that will stop Meteor from delivering your file to the desired destination
+- Use [▲ ostr.io](https://ostr.io?ref=github-clientstorage-repo-footer) for [Server Monitoring](https://snmp-monitoring.com), [Web Analytics](https://ostr.io/info/web-analytics?ref=github-clientstorage-repo-footer), [WebSec](https://domain-protection.info), [Web-CRON](https://web-cron.info) and [SEO Pre-rendering](https://prerendering.com) of a website
+- Star on [GitHub](https://github.com/veliovgroup/Client-Storage)
+- Star on [NPM](https://www.npmjs.com/package/Client-Storage)
+- Star on [Atmosphere](https://atmospherejs.com/ostrio/cstorage)
 - [Sponsor via GitHub](https://github.com/sponsors/dr-dimitru)
 - [Support via PayPal](https://paypal.me/veliovgroup)
-- Use [ostr.io](https://ostr.io) — [Monitoring](https://snmp-monitoring.com), [Analytics](https://ostr.io/info/web-analytics), [WebSec](https://domain-protection.info), [Web-CRON](https://web-cron.info) and [Pre-rendering](https://prerendering.com) for a website
