@@ -144,14 +144,14 @@ class CookiesStorage extends BaseStorage {
     }
   }
 
-/**
- * @locus Client
- * @memberOf CookiesStorage
- * @name init
- * @param {String} [cookieString] - document.cookie string to parse on init.
- * @summary Parse cookies into data/ttlData (uses BaseStorage cache, fixes TTL mapping).
- * @returns {void 0}
- */
+  /**
+   * @locus Client
+   * @memberOf CookiesStorage
+   * @name init
+   * @param {String} [cookieString] - document.cookie string to parse on init.
+   * @summary Parse cookies into data/ttlData (uses BaseStorage cache, fixes TTL mapping).
+   * @returns {void 0}
+   */
   init(cookieString) {
     if (typeof cookieString === 'string' && cookieString.length) {
       const TTL_SUFFIX = '.___exp';
@@ -184,16 +184,16 @@ class CookiesStorage extends BaseStorage {
     }
   }
 
-/**
- * @locus Client
- * @memberOf CookiesStorage
- * @name set
- * @param {String} key - Key to create/overwrite
- * @param {any} value - Value (string, object, array, boolean, null, undefined supported via JSON)
- * @param {Number} [ttl] - TTL in seconds (defaults to ~10 years)
- * @summary Create/overwrite record as cookie (with separate TTL cookie).
- * @returns {Boolean}
- */
+  /**
+   * @locus Client
+   * @memberOf CookiesStorage
+   * @name set
+   * @param {String} key - Key to create/overwrite
+   * @param {any} value - Value (string, object, array, boolean, null, undefined supported via JSON)
+   * @param {Number} [ttl] - TTL in seconds (defaults to ~10 years)
+   * @summary Create/overwrite record as cookie (with separate TTL cookie).
+   * @returns {Boolean}
+   */
   set(key, value, _ttl) {
     const ttl = (typeof _ttl === 'number' && _ttl > 0) ? _ttl : DEFAULT_TTL;
 
@@ -208,14 +208,14 @@ class CookiesStorage extends BaseStorage {
     return false;
   }
 
-/**
- * @locus Client
- * @memberOf CookiesStorage
- * @name remove
- * @param {String} key - The name of the cookie to remove
- * @summary Remove a cookie(s).
- * @returns {Boolean}
- */
+  /**
+   * @locus Client
+   * @memberOf CookiesStorage
+   * @name remove
+   * @param {String} key - The name of the cookie to remove
+   * @summary Remove a cookie(s).
+   * @returns {Boolean}
+   */
   remove(key) {
     const result = super.remove(key);
     if (typeof key === 'string') {
@@ -226,13 +226,13 @@ class CookiesStorage extends BaseStorage {
     return result;
   }
 
-/**
- * @locus Client
- * @memberOf CookiesStorage
- * @name isSupported
- * @summary Returns `true` is this storage driver is supported
- * @returns {Boolean}
- */
+  /**
+   * @locus Client
+   * @memberOf CookiesStorage
+   * @name isSupported
+   * @summary Returns `true` is this storage driver is supported
+   * @returns {Boolean}
+   */
   static isSupported() {
     let result;
     try {

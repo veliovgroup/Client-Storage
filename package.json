@@ -36,9 +36,9 @@
     "build:cjs": "rollup -c rollup.config.js",
     "build:types": "cp ./index.d.ts ./index.d.cts",
     "build": "npm run build:cjs && npm run build:types",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -p tsconfig.types.json",
     "prepublishOnly": "npm run build",
-    "test": "jest --config jest.config.js",
+    "test": "jest --config jest.config.js && npm run typecheck",
     "test:meteor": "meteor test-packages ./",
     "lint": "echo \"No linter configured\""
   },
