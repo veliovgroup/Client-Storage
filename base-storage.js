@@ -23,8 +23,10 @@ class BaseStorage {
    * Check if TTL expired for key. Auto cleanup on access.
    */
   _checkTTL(key) {
-    const expireAt = this.ttlData[key];
-    if (expireAt && expireAt <= Date.now()) {
+    if (!hasOwn(this.ttlData, key)) return false;
+
+    const expireAt = Number(this.ttlData[key]);
+    if (!Number.isFinite(expireAt) || expireAt <= Date.now()) {
       this.remove(key);
       return true;
     }
