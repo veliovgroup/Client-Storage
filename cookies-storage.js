@@ -1,21 +1,19 @@
-var BaseStorage = require('./base-storage.js');
-var DEFAULT_TTL = 3.154e+8; // 10 years
+import BaseStorage from './base-storage.js';
+const DEFAULT_TTL = 3.154e+8; // 10 years
 
 /**
  * @locus Client
  * @class CookiesStorage
  * @summary Cookie-driven storage. Extends BaseStorage.
  */
-function CookiesStorage(clientStorage, cookieString) {
-  BaseStorage.call(this, clientStorage);
+class CookiesStorage extends BaseStorage {
+  constructor(clientStorage, cookieString) {
+    super(clientStorage);
 
-  if (cookieString && typeof cookieString === 'string') {
-    this.init(cookieString);
+    if (cookieString && typeof cookieString === 'string') {
+      this.init(cookieString);
+    }
   }
-}
-
-CookiesStorage.prototype = Object.create(BaseStorage.prototype);
-CookiesStorage.prototype.constructor = CookiesStorage;
 
 /**
  * @locus Client
@@ -25,38 +23,37 @@ CookiesStorage.prototype.constructor = CookiesStorage;
  * @summary Parse cookies into data/ttlData (uses BaseStorage cache, fixes TTL mapping).
  * @returns {void 0}
  */
-CookiesStorage.prototype.init = function (cookieString) {
-  if (typeof cookieString === 'string' && cookieString.length) {
-    var self = this;
-    var TTL_SUFFIX = '.___exp';
-    cookieString.split(/; */).forEach(function (pair) {
-      var i = pair.indexOf('=');
-      if (i < 0) return;
+  init(cookieString) {
+    if (typeof cookieString === 'string' && cookieString.length) {
+      const TTL_SUFFIX = '.___exp';
+      cookieString.split(/; */).forEach((pair) => {
+        const i = pair.indexOf('=');
+        if (i < 0) return;
 
-      var keyPart = pair.substr(0, i).trim();
-      var valPart = pair.substr(i + 1).trim();
-      var key = self.unescape(keyPart);
-      var val = valPart;
+        const keyPart = pair.substring(0, i).trim();
+        const valPart = pair.substring(i + 1).trim();
+        const key = this.unescape(keyPart);
+        let val = valPart;
 
-      if (val && val[0] === '"') {
-        val = val.slice(1, -1);
-      }
+        if (val && val[0] === '"') {
+          val = val.slice(1, -1);
+        }
 
-      if (self.data[key] === void 0) {
-        if (typeof key === 'string' && key.indexOf(TTL_SUFFIX) !== -1) {
-          var mainKey = key.replace(new RegExp(TTL_SUFFIX + '$'), '');
-          self.ttlData[mainKey] = parseInt(val, 10) || 0;
-        } else {
-          try {
-            self.data[key] = self.unescape(val);
-          } catch (_) {
-            self.data[key] = val;
+        if (this.data[key] === void 0) {
+          if (typeof key === 'string' && key.indexOf(TTL_SUFFIX) !== -1) {
+            const mainKey = key.replace(new RegExp(TTL_SUFFIX + '$'), '');
+            this.ttlData[mainKey] = parseInt(val, 10) || 0;
+          } else {
+            try {
+              this.data[key] = this.unescape(val);
+            } catch (_) {
+              this.data[key] = val;
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
-};
 
 /**
  * @locus Client
@@ -68,19 +65,19 @@ CookiesStorage.prototype.init = function (cookieString) {
  * @summary Create/overwrite record as cookie (with separate TTL cookie).
  * @returns {Boolean}
  */
-CookiesStorage.prototype.set = function (key, value, _ttl) {
-  var ttl = (typeof _ttl === 'number' && _ttl > 0) ? _ttl : DEFAULT_TTL;
+  set(key, value, _ttl) {
+    const ttl = (typeof _ttl === 'number' && _ttl > 0) ? _ttl : DEFAULT_TTL;
 
-  if (BaseStorage.prototype.set.call(this, key, value, ttl)) {
-    var escapedKey = this.escape(key);
-    var escapedValue = this.escape(value);
-    var expireAt = this.ttlData[key];
-    document.cookie = escapedKey + '=' + escapedValue + '; Max-Age=' + ttl + '; Path=/';
-    document.cookie = escapedKey + this.TTL_SUFFIX + '=' + expireAt + '; Max-Age=' + ttl + '; Path=/';
-    return true;
+    if (super.set(key, value, ttl)) {
+      const escapedKey = this.escape(key);
+      const escapedValue = this.escape(value);
+      const expireAt = this.ttlData[key];
+      document.cookie = escapedKey + '=' + escapedValue + '; Max-Age=' + ttl + '; Path=/';
+      document.cookie = escapedKey + this.TTL_SUFFIX + '=' + expireAt + '; Max-Age=' + ttl + '; Path=/';
+      return true;
+    }
+    return false;
   }
-  return false;
-};
 
 /**
  * @locus Client
@@ -90,15 +87,15 @@ CookiesStorage.prototype.set = function (key, value, _ttl) {
  * @summary Remove a cookie(s).
  * @returns {Boolean}
  */
-CookiesStorage.prototype.remove = function (key) {
-  var result = BaseStorage.prototype.remove.call(this, key);
-  if (typeof key === 'string') {
-    var escapedKey = this.escape(key);
-    document.cookie = escapedKey + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
-    document.cookie = escapedKey + this.TTL_SUFFIX + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+  remove(key) {
+    const result = super.remove(key);
+    if (typeof key === 'string') {
+      const escapedKey = this.escape(key);
+      document.cookie = escapedKey + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+      document.cookie = escapedKey + this.TTL_SUFFIX + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+    }
+    return result;
   }
-  return result;
-};
 
 /**
  * @locus Client
@@ -107,16 +104,17 @@ CookiesStorage.prototype.remove = function (key) {
  * @summary Returns `true` is this storage driver is supported
  * @returns {Boolean}
  */
-CookiesStorage.isSupported = function () {
-  var result;
-  try {
-    document.cookie = '___isSupported___=value; Max-Age=' + DEFAULT_TTL + '; Path=/';
-    result = document.cookie.includes('___isSupported___');
-    document.cookie = '___isSupported___=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
-  } catch (_) {
-    return false;
+  static isSupported() {
+    let result;
+    try {
+      document.cookie = '___isSupported___=value; Max-Age=' + DEFAULT_TTL + '; Path=/';
+      result = document.cookie.includes('___isSupported___');
+      document.cookie = '___isSupported___=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+    } catch (_) {
+      return false;
+    }
+    return result && navigator.cookieEnabled;
   }
-  return result && navigator.cookieEnabled;
-};
+}
 
-module.exports = CookiesStorage;
+export default CookiesStorage;

@@ -1,16 +1,14 @@
-var BaseStorage = require('./base-storage.js');
+import BaseStorage from './base-storage.js';
 
 /**
  * @locus Client
  * @class JSStorage
  * @summary JavaScript Object-driven (in-memory) storage. Extends BaseStorage (no overrides needed).
  */
-function JSStorage(clientStorage) {
-  BaseStorage.call(this, clientStorage);
-}
-
-JSStorage.prototype = Object.create(BaseStorage.prototype);
-JSStorage.prototype.constructor = JSStorage;
+class JSStorage extends BaseStorage {
+  constructor(clientStorage) {
+    super(clientStorage);
+  }
 
 /**
  * @locus Client
@@ -19,8 +17,9 @@ JSStorage.prototype.constructor = JSStorage;
  * @summary Always returns true for in-memory driver.
  * @returns {Boolean}
  */
-JSStorage.isSupported = function () {
-  return true;
-};
+  static isSupported() {
+    return true;
+  }
+}
 
-module.exports = JSStorage;
+export default JSStorage;
