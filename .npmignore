@@ -1,11 +1,19 @@
 .npm
+.git
 .github
 .meteor
 .DS_Store
 .versions
 .eslintcache
+.versions
 node_modules
 npm-debug.log*
+
+AGENTS.md
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+HISTORY.md
 
 client-storage-tests.js
 package.js

@@ -1,0 +1,17 @@
+.npm
+node_modules
+.DS_Store
+.eslintcache
+.eslintrc
+.npmignore
+.meteorignore
+cover.jpg
+cover.png
+npm-debug.log*
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+HISTORY.md
+index.cjs
+LICENCE
+LICENSE
