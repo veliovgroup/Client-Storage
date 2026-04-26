@@ -1,3 +1,4 @@
+/* eslint-disable no-loop-func */
 import { Meteor } from 'meteor/meteor';
 import { ClientStorage } from './client-storage.js';
 
