@@ -1,4 +1,5 @@
 import BaseStorage from './base-storage.js';
+import { createStore, hasOwn } from './helpers.js';
 
 let localStorageDriver;
 
@@ -22,30 +23,41 @@ class BrowserStorage extends BaseStorage {
    */
   init() {
     localStorageDriver = window.localStorage || localStorage;
-    const TTL_SUFFIX = '.___exp';
+    const expiredKeys = createStore();
+    const storageKeys = [];
+    const now = Date.now();
 
-    // CLEAN UP EXPIRED ITEMS + populate data/ttlData (uses BaseStorage cache)
     let i = localStorageDriver.length;
     while (i--) {
       const key = localStorageDriver.key(i);
       if (typeof key !== 'string') continue;
+      storageKeys.push(key);
+    }
 
-      if (key.indexOf(TTL_SUFFIX) !== -1) {
+    storageKeys.forEach((key) => {
+      if (key.endsWith(this.TTL_SUFFIX)) {
         const expireAt = parseInt(localStorageDriver.getItem(key), 10);
-        const mainKey = key.replace(TTL_SUFFIX, '');
-        if (expireAt <= Date.now() || isNaN(expireAt)) {
+        const mainKey = key.slice(0, -this.TTL_SUFFIX.length);
+        if (expireAt <= now || isNaN(expireAt)) {
+          expiredKeys[mainKey] = true;
           localStorageDriver.removeItem(key);
           localStorageDriver.removeItem(mainKey);
+          delete this.data[mainKey];
+          delete this.ttlData[mainKey];
         } else {
           this.ttlData[mainKey] = expireAt;
         }
-      } else {
+      }
+    });
+
+    storageKeys.forEach((key) => {
+      if (!key.endsWith(this.TTL_SUFFIX) && !hasOwn(expiredKeys, key)) {
         const item = localStorageDriver.getItem(key);
         if (item !== null) {
           this.data[key] = this.unescape(item);
         }
       }
-    }
+    });
   }
 
   /**
@@ -61,8 +73,10 @@ class BrowserStorage extends BaseStorage {
   set(key, value, ttl) {
     if (super.set(key, value, ttl)) {
       localStorageDriver.setItem(key, this.escape(value));
-      if (typeof ttl === 'number' && this.ttlData[key]) {
+      if (hasOwn(this.ttlData, key)) {
         localStorageDriver.setItem(key + this.TTL_SUFFIX, this.ttlData[key]);
+      } else {
+        localStorageDriver.removeItem(key + this.TTL_SUFFIX);
       }
       return true;
     }
@@ -96,6 +110,9 @@ class BrowserStorage extends BaseStorage {
    */
   static isSupported() {
     try {
+      if (typeof window === 'undefined') {
+        return false;
+      }
       if ('localStorage' in window && window.localStorage !== null) {
         // Safari will throw an exception in Private mode
         window.localStorage.setItem('___test___', 'test');

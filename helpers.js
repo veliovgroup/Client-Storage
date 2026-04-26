@@ -2,7 +2,7 @@
  * @Object
  * @name helpers
  */
-export const escape = (value) => {
+export const stringifyValue = (value) => {
   if (value === undefined) return 'undefined';
   try {
     return JSON.stringify(value);
@@ -15,7 +15,7 @@ export const escape = (value) => {
   }
 };
 
-export const unescape = (value) => {
+export const parseValue = (value) => {
   if (value === 'undefined' || value === undefined) return undefined;
   if (value === 'null') return null;
   try {
@@ -25,9 +25,12 @@ export const unescape = (value) => {
   }
 };
 
-const helpers = {
-  escape,
-  unescape
-};
+export const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+export const createStore = () => Object.create(null);
 
-export default helpers;
+export default {
+  stringifyValue,
+  parseValue,
+  hasOwn,
+  createStore
+};

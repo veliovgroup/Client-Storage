@@ -2,9 +2,10 @@ import BaseStorage from './base-storage.js';
 import CookiesStorage from './cookies-storage.js';
 import JSStorage from './js-storage.js';
 import BrowserStorage from './browser-storage.js';
+import { createStore, hasOwn } from './helpers.js';
 
 const isServer = () =>
-  typeof process === 'object' && process !== null && typeof process.browser === 'undefined';
+  typeof window === 'undefined' || typeof document === 'undefined';
 
 const debug = (...args) => {
   // eslint-disable-next-line no-console
@@ -12,9 +13,9 @@ const debug = (...args) => {
 };
 
 const mixin = (target, proto) => {
-  if (!proto) return;
+  if (!proto || proto === Object.prototype) return;
   Object.getOwnPropertyNames(proto).forEach((name) => {
-    if (name !== 'constructor' && !target.hasOwnProperty(name)) {
+    if (name !== 'constructor' && !hasOwn(target, name)) {
       target[name] = proto[name];
     }
   });
@@ -29,8 +30,8 @@ const mixin = (target, proto) => {
  */
 class ClientStorage {
   constructor(driverName) {
-    this.data = {};
-    this.ttlData = {};
+    this.data = createStore();
+    this.ttlData = createStore();
     let StorageDriver;
     this.driverName = driverName;
 
@@ -80,6 +81,7 @@ class ClientStorage {
     } else {
       this.driver = new StorageDriver(this);
     }
+    this.TTL_SUFFIX = this.driver.TTL_SUFFIX;
     // Mix methods from driver prototype chain (BaseStorage + driver overrides) to preserve API
     mixin(this, StorageDriver.prototype);
   }
@@ -112,7 +114,7 @@ class ClientStorage {
       return void 0;
     }
 
-    if (this.data.hasOwnProperty(key)) {
+    if (hasOwn(this.data, key)) {
       if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
         this.remove(key);
         return void 0;
@@ -136,7 +138,7 @@ class ClientStorage {
       return false;
     }
 
-    if (this.data.hasOwnProperty(key)) {
+    if (hasOwn(this.data, key)) {
       if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
         this.remove(key);
         return false;
@@ -170,3 +172,4 @@ class ClientStorage {
 }
 
 export { BaseStorage, JSStorage, BrowserStorage, CookiesStorage, ClientStorage };
+export default ClientStorage;

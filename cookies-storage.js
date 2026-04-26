@@ -1,4 +1,5 @@
 import BaseStorage from './base-storage.js';
+import { createStore, hasOwn } from './helpers.js';
 const DEFAULT_TTL = 3.154e+8; // 10 years
 
 /**
@@ -25,31 +26,44 @@ class CookiesStorage extends BaseStorage {
    */
   init(cookieString) {
     if (typeof cookieString === 'string' && cookieString.length) {
-      const TTL_SUFFIX = '.___exp';
-      cookieString.split(/; */).forEach((pair) => {
+      const expiredKeys = createStore();
+      const pairs = cookieString.split(/; */).map((pair) => {
         const i = pair.indexOf('=');
-        if (i < 0) return;
+        if (i < 0) return null;
 
-        const keyPart = pair.substring(0, i).trim();
+        const rawKey = pair.substring(0, i).trim();
         const valPart = pair.substring(i + 1).trim();
-        const key = this.unescape(keyPart);
         let val = valPart;
 
         if (val && val[0] === '"') {
           val = val.slice(1, -1);
         }
 
-        if (this.data[key] === void 0) {
-          if (typeof key === 'string' && key.indexOf(TTL_SUFFIX) !== -1) {
-            const mainKey = key.replace(new RegExp(TTL_SUFFIX + '$'), '');
-            this.ttlData[mainKey] = parseInt(val, 10) || 0;
+        return {
+          rawKey,
+          val
+        };
+      }).filter(Boolean);
+
+      pairs.forEach(({ rawKey, val }) => {
+        if (rawKey.endsWith(this.TTL_SUFFIX)) {
+          const mainKey = this.unescape(rawKey.slice(0, -this.TTL_SUFFIX.length));
+          const expireAt = parseInt(val, 10) || 0;
+          if (expireAt <= Date.now()) {
+            expiredKeys[mainKey] = true;
           } else {
-            try {
-              this.data[key] = this.unescape(val);
-            } catch (_) {
-              this.data[key] = val;
-            }
+            this.ttlData[mainKey] = expireAt;
           }
+        }
+      });
+
+      pairs.forEach(({ rawKey, val }) => {
+        if (!rawKey.endsWith(this.TTL_SUFFIX)) {
+          const key = this.unescape(rawKey);
+          if (hasOwn(this.data, key) || hasOwn(expiredKeys, key)) {
+            return;
+          }
+          this.data[key] = this.unescape(val);
         }
       });
     }
@@ -107,6 +121,9 @@ class CookiesStorage extends BaseStorage {
   static isSupported() {
     let result;
     try {
+      if (typeof document === 'undefined' || typeof navigator === 'undefined') {
+        return false;
+      }
       document.cookie = '___isSupported___=value; Max-Age=' + DEFAULT_TTL + '; Path=/';
       result = document.cookie.includes('___isSupported___');
       document.cookie = '___isSupported___=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';

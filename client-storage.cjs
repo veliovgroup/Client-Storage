@@ -1,10 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 /*
  * @Object
  * @name helpers
  */
-const escape$1 = (value) => {
+const stringifyValue = (value) => {
   if (value === undefined) return 'undefined';
   try {
     return JSON.stringify(value);
@@ -17,7 +19,7 @@ const escape$1 = (value) => {
   }
 };
 
-const unescape$1 = (value) => {
+const parseValue = (value) => {
   if (value === 'undefined' || value === undefined) return undefined;
   if (value === 'null') return null;
   try {
@@ -27,10 +29,8 @@ const unescape$1 = (value) => {
   }
 };
 
-const helpers = {
-  escape: escape$1,
-  unescape: unescape$1
-};
+const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+const createStore = () => Object.create(null);
 
 const TTL_SUFFIX = '.___exp';
 
@@ -45,11 +45,10 @@ class BaseStorage {
       this.data = clientStorage.data;
       this.ttlData = clientStorage.ttlData;
     } else {
-      this.data = {};
-      this.ttlData = {};
+      this.data = createStore();
+      this.ttlData = createStore();
     }
     this.TTL_SUFFIX = TTL_SUFFIX;
-    this.helpers = helpers;
   }
 
   /**
@@ -66,20 +65,20 @@ class BaseStorage {
 
   get(key) {
     if (typeof key !== 'string') return void 0;
-    if (!this.data.hasOwnProperty(key)) return void 0;
+    if (!hasOwn(this.data, key)) return void 0;
     if (this._checkTTL(key)) return void 0;
     return this.data[key];
   }
 
   has(key) {
     if (typeof key !== 'string') return false;
-    if (!this.data.hasOwnProperty(key)) return false;
+    if (!hasOwn(this.data, key)) return false;
     if (this._checkTTL(key)) return false;
     return true;
   }
 
   keys() {
-    return Object.keys(this.data);
+    return Object.keys(this.data).filter((key) => !this._checkTTL(key));
   }
 
   empty() {
@@ -92,14 +91,15 @@ class BaseStorage {
     if (typeof ttl === 'number' && ttl > 0) {
       const expireAt = Date.now() + (ttl * 1000);
       this.ttlData[key] = expireAt;
-      return true; // driver must call super or implement full
+    } else {
+      delete this.ttlData[key];
     }
     return true;
   }
 
   remove(key) {
     if (typeof key === 'string') {
-      if (this.data.hasOwnProperty(key)) {
+      if (hasOwn(this.data, key)) {
         delete this.data[key];
         delete this.ttlData[key];
         return true;
@@ -116,11 +116,17 @@ class BaseStorage {
   }
 
   escape(val) {
-    return escape(this.helpers.escape(val));
+    return encodeURIComponent(stringifyValue(val));
   }
 
   unescape(val) {
-    return this.helpers.unescape(unescape(val));
+    let decoded = val;
+    try {
+      decoded = decodeURIComponent(val);
+    } catch (_) {
+      decoded = globalThis.unescape(val);
+    }
+    return parseValue(decoded);
   }
 
   static isSupported() {
@@ -154,31 +160,44 @@ class CookiesStorage extends BaseStorage {
    */
   init(cookieString) {
     if (typeof cookieString === 'string' && cookieString.length) {
-      const TTL_SUFFIX = '.___exp';
-      cookieString.split(/; */).forEach((pair) => {
+      const expiredKeys = createStore();
+      const pairs = cookieString.split(/; */).map((pair) => {
         const i = pair.indexOf('=');
-        if (i < 0) return;
+        if (i < 0) return null;
 
-        const keyPart = pair.substring(0, i).trim();
+        const rawKey = pair.substring(0, i).trim();
         const valPart = pair.substring(i + 1).trim();
-        const key = this.unescape(keyPart);
         let val = valPart;
 
         if (val && val[0] === '"') {
           val = val.slice(1, -1);
         }
 
-        if (this.data[key] === void 0) {
-          if (typeof key === 'string' && key.indexOf(TTL_SUFFIX) !== -1) {
-            const mainKey = key.replace(new RegExp(TTL_SUFFIX + '$'), '');
-            this.ttlData[mainKey] = parseInt(val, 10) || 0;
+        return {
+          rawKey,
+          val
+        };
+      }).filter(Boolean);
+
+      pairs.forEach(({ rawKey, val }) => {
+        if (rawKey.endsWith(this.TTL_SUFFIX)) {
+          const mainKey = this.unescape(rawKey.slice(0, -this.TTL_SUFFIX.length));
+          const expireAt = parseInt(val, 10) || 0;
+          if (expireAt <= Date.now()) {
+            expiredKeys[mainKey] = true;
           } else {
-            try {
-              this.data[key] = this.unescape(val);
-            } catch (_) {
-              this.data[key] = val;
-            }
+            this.ttlData[mainKey] = expireAt;
           }
+        }
+      });
+
+      pairs.forEach(({ rawKey, val }) => {
+        if (!rawKey.endsWith(this.TTL_SUFFIX)) {
+          const key = this.unescape(rawKey);
+          if (hasOwn(this.data, key) || hasOwn(expiredKeys, key)) {
+            return;
+          }
+          this.data[key] = this.unescape(val);
         }
       });
     }
@@ -236,6 +255,9 @@ class CookiesStorage extends BaseStorage {
   static isSupported() {
     let result;
     try {
+      if (typeof document === 'undefined' || typeof navigator === 'undefined') {
+        return false;
+      }
       document.cookie = '___isSupported___=value; Max-Age=' + DEFAULT_TTL + '; Path=/';
       result = document.cookie.includes('___isSupported___');
       document.cookie = '___isSupported___=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
@@ -290,30 +312,41 @@ class BrowserStorage extends BaseStorage {
    */
   init() {
     localStorageDriver = window.localStorage || localStorage;
-    const TTL_SUFFIX = '.___exp';
+    const expiredKeys = createStore();
+    const storageKeys = [];
+    const now = Date.now();
 
-    // CLEAN UP EXPIRED ITEMS + populate data/ttlData (uses BaseStorage cache)
     let i = localStorageDriver.length;
     while (i--) {
       const key = localStorageDriver.key(i);
       if (typeof key !== 'string') continue;
+      storageKeys.push(key);
+    }
 
-      if (key.indexOf(TTL_SUFFIX) !== -1) {
+    storageKeys.forEach((key) => {
+      if (key.endsWith(this.TTL_SUFFIX)) {
         const expireAt = parseInt(localStorageDriver.getItem(key), 10);
-        const mainKey = key.replace(TTL_SUFFIX, '');
-        if (expireAt <= Date.now() || isNaN(expireAt)) {
+        const mainKey = key.slice(0, -this.TTL_SUFFIX.length);
+        if (expireAt <= now || isNaN(expireAt)) {
+          expiredKeys[mainKey] = true;
           localStorageDriver.removeItem(key);
           localStorageDriver.removeItem(mainKey);
+          delete this.data[mainKey];
+          delete this.ttlData[mainKey];
         } else {
           this.ttlData[mainKey] = expireAt;
         }
-      } else {
+      }
+    });
+
+    storageKeys.forEach((key) => {
+      if (!key.endsWith(this.TTL_SUFFIX) && !hasOwn(expiredKeys, key)) {
         const item = localStorageDriver.getItem(key);
         if (item !== null) {
           this.data[key] = this.unescape(item);
         }
       }
-    }
+    });
   }
 
   /**
@@ -329,8 +362,10 @@ class BrowserStorage extends BaseStorage {
   set(key, value, ttl) {
     if (super.set(key, value, ttl)) {
       localStorageDriver.setItem(key, this.escape(value));
-      if (typeof ttl === 'number' && this.ttlData[key]) {
+      if (hasOwn(this.ttlData, key)) {
         localStorageDriver.setItem(key + this.TTL_SUFFIX, this.ttlData[key]);
+      } else {
+        localStorageDriver.removeItem(key + this.TTL_SUFFIX);
       }
       return true;
     }
@@ -364,6 +399,9 @@ class BrowserStorage extends BaseStorage {
    */
   static isSupported() {
     try {
+      if (typeof window === 'undefined') {
+        return false;
+      }
       if ('localStorage' in window && window.localStorage !== null) {
         // Safari will throw an exception in Private mode
         window.localStorage.setItem('___test___', 'test');
@@ -378,7 +416,7 @@ class BrowserStorage extends BaseStorage {
 }
 
 const isServer = () =>
-  typeof process === 'object' && process !== null && typeof process.browser === 'undefined';
+  typeof window === 'undefined' || typeof document === 'undefined';
 
 const debug = (...args) => {
   // eslint-disable-next-line no-console
@@ -386,9 +424,9 @@ const debug = (...args) => {
 };
 
 const mixin = (target, proto) => {
-  if (!proto) return;
+  if (!proto || proto === Object.prototype) return;
   Object.getOwnPropertyNames(proto).forEach((name) => {
-    if (name !== 'constructor' && !target.hasOwnProperty(name)) {
+    if (name !== 'constructor' && !hasOwn(target, name)) {
       target[name] = proto[name];
     }
   });
@@ -403,8 +441,8 @@ const mixin = (target, proto) => {
  */
 class ClientStorage {
   constructor(driverName) {
-    this.data = {};
-    this.ttlData = {};
+    this.data = createStore();
+    this.ttlData = createStore();
     let StorageDriver;
     this.driverName = driverName;
 
@@ -452,6 +490,7 @@ class ClientStorage {
     } else {
       this.driver = new StorageDriver(this);
     }
+    this.TTL_SUFFIX = this.driver.TTL_SUFFIX;
     // Mix methods from driver prototype chain (BaseStorage + driver overrides) to preserve API
     mixin(this, StorageDriver.prototype);
   }
@@ -484,7 +523,7 @@ class ClientStorage {
       return void 0;
     }
 
-    if (this.data.hasOwnProperty(key)) {
+    if (hasOwn(this.data, key)) {
       if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
         this.remove(key);
         return void 0;
@@ -508,7 +547,7 @@ class ClientStorage {
       return false;
     }
 
-    if (this.data.hasOwnProperty(key)) {
+    if (hasOwn(this.data, key)) {
       if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
         this.remove(key);
         return false;
@@ -546,3 +585,4 @@ exports.BrowserStorage = BrowserStorage;
 exports.ClientStorage = ClientStorage;
 exports.CookiesStorage = CookiesStorage;
 exports.JSStorage = JSStorage;
+exports.default = ClientStorage;

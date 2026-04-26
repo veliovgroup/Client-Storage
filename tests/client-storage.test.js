@@ -368,10 +368,10 @@ describe('Error handling and edge cases', () => {
     // Circular would fail JSON.stringify, tests fallback
     const circular = {};
     circular.self = circular;
-    const escaped = helpers.escape(circular);
-    expect(typeof escaped).toBe('string');
-    expect(helpers.unescape('invalid json')).toBe('invalid json');
-    expect(helpers.unescape('undefined')).toBeUndefined();
+    const serialized = helpers.stringifyValue(circular);
+    expect(typeof serialized).toBe('string');
+    expect(helpers.parseValue('invalid json')).toBe('invalid json');
+    expect(helpers.parseValue('undefined')).toBeUndefined();
   });
 
   test('TTL cleanup in init for browser/cookies (simulated)', () => {

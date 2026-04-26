@@ -1,4 +1,4 @@
-import helpers from './helpers.js';
+import { createStore, hasOwn, parseValue, stringifyValue } from './helpers.js';
 
 const TTL_SUFFIX = '.___exp';
 
@@ -13,11 +13,10 @@ class BaseStorage {
       this.data = clientStorage.data;
       this.ttlData = clientStorage.ttlData;
     } else {
-      this.data = {};
-      this.ttlData = {};
+      this.data = createStore();
+      this.ttlData = createStore();
     }
     this.TTL_SUFFIX = TTL_SUFFIX;
-    this.helpers = helpers;
   }
 
   /**
@@ -34,20 +33,20 @@ class BaseStorage {
 
   get(key) {
     if (typeof key !== 'string') return void 0;
-    if (!this.data.hasOwnProperty(key)) return void 0;
+    if (!hasOwn(this.data, key)) return void 0;
     if (this._checkTTL(key)) return void 0;
     return this.data[key];
   }
 
   has(key) {
     if (typeof key !== 'string') return false;
-    if (!this.data.hasOwnProperty(key)) return false;
+    if (!hasOwn(this.data, key)) return false;
     if (this._checkTTL(key)) return false;
     return true;
   }
 
   keys() {
-    return Object.keys(this.data);
+    return Object.keys(this.data).filter((key) => !this._checkTTL(key));
   }
 
   empty() {
@@ -60,14 +59,15 @@ class BaseStorage {
     if (typeof ttl === 'number' && ttl > 0) {
       const expireAt = Date.now() + (ttl * 1000);
       this.ttlData[key] = expireAt;
-      return true; // driver must call super or implement full
+    } else {
+      delete this.ttlData[key];
     }
     return true;
   }
 
   remove(key) {
     if (typeof key === 'string') {
-      if (this.data.hasOwnProperty(key)) {
+      if (hasOwn(this.data, key)) {
         delete this.data[key];
         delete this.ttlData[key];
         return true;
@@ -84,11 +84,17 @@ class BaseStorage {
   }
 
   escape(val) {
-    return escape(this.helpers.escape(val));
+    return encodeURIComponent(stringifyValue(val));
   }
 
   unescape(val) {
-    return this.helpers.unescape(unescape(val));
+    let decoded = val;
+    try {
+      decoded = decodeURIComponent(val);
+    } catch (_) {
+      decoded = globalThis.unescape(val);
+    }
+    return parseValue(decoded);
   }
 
   static isSupported() {
