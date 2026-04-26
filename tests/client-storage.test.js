@@ -64,6 +64,16 @@ describe('ClientStorage', () => {
     cookieSupport.mockRestore();
   });
 
+  test('constructor with unknown driver falls back through auto detection', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const storage = new ClientStorage('not-a-driver');
+
+    expect(['localStorage', 'cookies', 'js']).toContain(storage.driverName);
+    expect(warn).not.toHaveBeenCalled();
+
+    warn.mockRestore();
+  });
+
   test('basic CRUD operations', () => {
     expect(storage.set('key1', 'value1')).toBe(true);
     expect(storage.get('key1')).toBe('value1');
@@ -73,6 +83,24 @@ describe('ClientStorage', () => {
     expect(storage.remove('key1')).toBe(true);
     expect(storage.has('key1')).toBe(false);
     expect(storage.get('key1')).toBeUndefined();
+  });
+
+  test('get/has/keys delegate to active driver methods', () => {
+    const driverGet = jest.spyOn(storage.driver, 'get').mockReturnValue('driver-value');
+    const driverHas = jest.spyOn(storage.driver, 'has').mockReturnValue(false);
+    const driverKeys = jest.spyOn(storage.driver, 'keys').mockReturnValue(['driver-a', 'driver-b']);
+
+    expect(storage.get('delegated')).toBe('driver-value');
+    expect(storage.has('delegated')).toBe(false);
+    expect(storage.keys()).toEqual(['driver-a', 'driver-b']);
+
+    expect(driverGet).toHaveBeenCalledWith('delegated');
+    expect(driverHas).toHaveBeenCalledWith('delegated');
+    expect(driverKeys).toHaveBeenCalledWith();
+
+    driverGet.mockRestore();
+    driverHas.mockRestore();
+    driverKeys.mockRestore();
   });
 
   test('complex values: objects, arrays, booleans, null, undefined', () => {
@@ -258,6 +286,16 @@ describe('BrowserStorage localStorage driver', () => {
     window.localStorage.clear();
   });
 
+  test('isSupported returns false when localStorage can not be accessed', () => {
+    const setItem = jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem').mockImplementation(() => {
+      throw new Error('localStorage disabled');
+    });
+
+    expect(BrowserStorage.isSupported()).toBe(false);
+
+    setItem.mockRestore();
+  });
+
   test('overwriting a TTL record without TTL removes persisted expiry', () => {
     const originalNow = Date.now;
     const now = originalNow();
@@ -294,6 +332,13 @@ describe('BrowserStorage localStorage driver', () => {
 
     Date.now = originalNow;
     storage.empty();
+  });
+
+  test('init ignores corrupted JSON payloads and keeps key available', () => {
+    window.localStorage.setItem('corrupted', encodeURIComponent('{invalid json'));
+    const storage = new ClientStorage('localStorage');
+
+    expect(storage.get('corrupted')).toBe('{invalid json');
   });
 
   test('remove() deletes value and TTL from localStorage', () => {
@@ -352,6 +397,15 @@ describe('CookiesStorage cookie driver', () => {
     expect(storage.ttlData.quoted).toBe(expireAt);
   });
 
+  test('init ignores cookie parts without key names', () => {
+    const expireAt = Date.now() + 60000;
+    const storage = new CookiesStorage(undefined, '=bad; "valid"=%22ok%22; "ttl".___exp=' + expireAt);
+
+    expect(storage.get('valid')).toBe('ok');
+    expect(storage.has('')).toBe(false);
+    expect(storage.has('ttl')).toBe(false);
+  });
+
   test('init skips expired cookie records', () => {
     const expireAt = Date.now() - 1000;
     const storage = new CookiesStorage(undefined, 'expired=%22old%22; expired.___exp=' + expireAt);
@@ -377,6 +431,23 @@ describe('Error handling and edge cases', () => {
   test('TTL cleanup in init for browser/cookies (simulated)', () => {
     // Would require full browser env, but covered in Tinytest/Meteor
     expect(true).toBe(true);
+  });
+
+  test('helpers.string and json edge cases', () => {
+    const helpers = require('../helpers.js');
+    const circular = {};
+    circular.next = circular;
+
+    const serialized = helpers.stringifyValue(circular);
+    const base = new BaseStorage();
+
+    expect(typeof serialized).toBe('string');
+    expect(base.unescape('%7B%22broken%22%3A%5B%5D%7B%7D')).toBe('{"broken":[]{}');
+    expect(helpers.parseValue('')).toBe('');
+    expect(helpers.parseValue('null')).toBeNull();
+    expect(helpers.parseValue('true')).toBe(true);
+    expect(helpers.parseValue('0')).toBe(0);
+    expect(base.escape(undefined)).toBe('undefined');
   });
 });
 
