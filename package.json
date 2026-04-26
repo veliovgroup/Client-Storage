@@ -2,32 +2,45 @@
   "name": "ClientStorage",
   "version": "5.0.0",
   "description": "Bulletproof persistent browser storage with pluggable drivers (localStorage, cookies, in-memory). Full TS support, TTL, Unicode, no deps. Meteor + NPM compatible.",
-  "main": "./client-storage.js",
+  "main": "./client-storage.cjs",
+  "module": "./client-storage.js",
+  "type": "module",
   "types": "./index.d.ts",
   "exports": {
     ".": {
-      "types": "./index.d.ts",
-      "import": "./client-storage.js",
-      "require": "./client-storage.js"
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./client-storage.js"
+      },
+      "require": {
+        "types": "./index.d.cts",
+        "default": "./client-storage.cjs"
+      }
     }
   },
   "files": [
     "client-storage.js",
+    "client-storage.cjs",
+    "base-storage.js",
     "browser-storage.js",
     "cookies-storage.js",
     "js-storage.js",
     "helpers.js",
     "index.d.ts",
+    "index.d.cts",
+    "package.js",
     "README.md",
-    "docs/",
     "LICENSE"
   ],
   "scripts": {
+    "build:cjs": "rollup -c rollup.config.js",
+    "build:types": "cp ./index.d.ts ./index.d.cts",
+    "build": "npm run build:cjs && npm run build:types",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
     "test": "jest --config jest.config.js",
     "test:meteor": "meteor test-packages ./",
-    "build": "tsc --noEmit",
-    "lint": "echo \"No linter configured\"",
-    "prepublishOnly": "npm run build"
+    "lint": "echo \"No linter configured\""
   },
   "keywords": [
     "browser",
@@ -36,15 +49,20 @@
     "localstorage",
     "cookies",
     "local-storage",
-    "client-storage",
-    "ttl",
-    "meteor",
-    "typescript",
-    "jsdom"
+    "client-storage"
+  ],
+  "tags": [
+    "browser",
+    "persistent",
+    "storage",
+    "localstorage",
+    "cookies",
+    "local-storage",
+    "client-storage"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/veliovgroup/Client-Storage.git"
+    "url": "git://github.com/veliovgroup/Client-Storage.git"
   },
   "bugs": {
     "url": "https://github.com/veliovgroup/Client-Storage/issues"
@@ -58,6 +76,7 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "rollup": "^4.22.0"
   }
 }

@@ -87,10 +87,12 @@ class ClientStorage {
   /**
    * @locus Client
    * @memberOf ClientStorage
-   * @name get
-   * @param {String} key - The key of the value to read
-   * @summary Read a stored value by key. If the key doesn't exist a void 0 (undefined) value will be returned.
-   * @returns {String|Mix|void 0}
+   * @name set
+   * @param {String} key - The key of the value to set
+   * @param {*} value - JSON-serializable value to store
+   * @param {Number} [ttl] - Optional time-to-live in seconds
+   * @summary Store a value under key with optional TTL.
+   * @returns {Boolean}
    */
   set(key, value, ttl) {
     // Implemented by selected driver prototype (mixed via Object.assign)
@@ -168,4 +170,3 @@ class ClientStorage {
 }
 
 export { BaseStorage, JSStorage, BrowserStorage, CookiesStorage, ClientStorage };
-export default ClientStorage;
