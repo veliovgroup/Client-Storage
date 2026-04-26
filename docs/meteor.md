@@ -24,7 +24,19 @@ const clientStorage = new ClientStorage();
 
 **Full API and examples in [README.md](../README.md).**
 
-## Reactivity with ReactiveVar
+## TypeScript
+
+Atmosphere package includes `index.d.ts` via `zodern:types`.
+
+```ts
+import { ClientStorage } from 'meteor/ostrio:cstorage';
+
+const storage = new ClientStorage('localStorage');
+const saved: boolean = storage.set('layout', 'two-columns');
+const layout: unknown = storage.get('layout');
+```
+
+## ReactiveVar Wrapper
 
 Improved wrapper (uses storage for persistence):
 
@@ -79,8 +91,12 @@ Uses Tinytest. Covers all drivers, TTL async, Unicode, objects, edges. Jest for 
 
 See [README.md](../README.md) for general usage.
 
-## Support this project:
+## Support this project
 
+- Upload and share files using [☄️ meteor-files.com](https://meteor-files.com/?ref=github-clientstorage-repo-footer) — Continue interrupted file uploads without losing any progress. There is nothing that will stop Meteor from delivering your file to the desired destination
+- Use [▲ ostr.io](https://ostr.io?ref=github-clientstorage-repo-footer) for [Server Monitoring](https://snmp-monitoring.com), [Web Analytics](https://ostr.io/info/web-analytics?ref=github-clientstorage-repo-footer), [WebSec](https://domain-protection.info), [Web-CRON](https://web-cron.info) and [SEO Pre-rendering](https://prerendering.com) of a website
+- Star on [GitHub](https://github.com/veliovgroup/Client-Storage)
+- Star on [NPM](https://www.npmjs.com/package/Client-Storage)
+- Star on [Atmosphere](https://atmospherejs.com/ostrio/cstorage)
 - [Sponsor via GitHub](https://github.com/sponsors/dr-dimitru)
 - [Support via PayPal](https://paypal.me/veliovgroup)
-- Use [ostr.io](https://ostr.io) — [Monitoring](https://snmp-monitoring.com), [Analytics](https://ostr.io/info/web-analytics), [WebSec](https://domain-protection.info), [Web-CRON](https://web-cron.info) and [Pre-rendering](https://prerendering.com) for a website
