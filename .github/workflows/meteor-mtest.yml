@@ -1,0 +1,39 @@
+name: Meteor Mtest
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: meteor-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Meteor package tests (mtest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Meteor
+        run: curl https://install.meteor.com/ | sh
+
+      - name: Add Meteor to PATH
+        run: echo "$HOME/.meteor" >> "$GITHUB_PATH"
+
+      - name: Verify Meteor
+        run: meteor --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Meteor tests via mtest
+        run: npm run test:meteor:console
