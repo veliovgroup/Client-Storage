@@ -5,6 +5,22 @@
  */
 
 const { ClientStorage, JSStorage, BrowserStorage, CookiesStorage, BaseStorage } = require('../client-storage.js');
+const { execFileSync } = require('node:child_process');
+const path = require('node:path');
+
+const runNode = (args) => execFileSync(process.execPath, args, {
+  cwd: path.resolve(__dirname, '..'),
+  encoding: 'utf8'
+});
+
+const clearCookies = () => {
+  document.cookie.split(';').forEach((cookie) => {
+    const key = cookie.split('=')[0].trim();
+    if (key) {
+      document.cookie = key + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+    }
+  });
+};
 
 describe('ClientStorage', () => {
   let storage;
@@ -28,7 +44,24 @@ describe('ClientStorage', () => {
     expect(js.driverName).toBe('js');
 
     const auto = new ClientStorage();
-    expect(['localStorage', 'cookies', 'js']).toContain(auto.driverName);
+    expect(auto.driverName).toBe('localStorage');
+  });
+
+  test('constructor falls back when requested driver is unavailable', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const localStorageSupport = jest.spyOn(BrowserStorage, 'isSupported').mockReturnValue(false);
+    const cookieSupport = jest.spyOn(CookiesStorage, 'isSupported').mockReturnValue(false);
+
+    const requestedLocalStorage = new ClientStorage('localStorage');
+    const auto = new ClientStorage();
+
+    expect(requestedLocalStorage.driverName).toBe('js');
+    expect(auto.driverName).toBe('js');
+    expect(warn).toHaveBeenCalledWith('ClientStorage is set to "localStorage", but it is not supported on this browser');
+
+    warn.mockRestore();
+    localStorageSupport.mockRestore();
+    cookieSupport.mockRestore();
   });
 
   test('basic CRUD operations', () => {
@@ -71,6 +104,16 @@ describe('ClientStorage', () => {
     expect(storage.has('Кириллица')).toBe(true);
   });
 
+  test('property-name keys do not break storage internals', () => {
+    expect(storage.set('hasOwnProperty', 'safe')).toBe(true);
+    expect(storage.set('__proto__', { polluted: false })).toBe(true);
+
+    expect(storage.has('hasOwnProperty')).toBe(true);
+    expect(storage.get('hasOwnProperty')).toBe('safe');
+    expect(storage.get('__proto__')).toEqual({ polluted: false });
+    expect({}.polluted).toBeUndefined();
+  });
+
   test('TTL expiration', () => {
     const key = 'ttlKey';
     storage.set(key, 'will expire', 1); // 1s
@@ -82,6 +125,37 @@ describe('ClientStorage', () => {
     Date.now = () => originalNow() + 2000;
     expect(storage.has(key)).toBe(false);
     expect(storage.get(key)).toBeUndefined();
+    Date.now = originalNow;
+  });
+
+  test('set() without TTL clears existing TTL metadata', () => {
+    const originalNow = Date.now;
+    const now = originalNow();
+    Date.now = () => now;
+
+    storage.set('overwrite', 'old', 1);
+    storage.set('overwrite', 'new');
+
+    Date.now = () => now + 2000;
+    expect(storage.has('overwrite')).toBe(true);
+    expect(storage.get('overwrite')).toBe('new');
+    expect(storage.ttlData.overwrite).toBeUndefined();
+
+    Date.now = originalNow;
+  });
+
+  test('keys() excludes and removes expired records', () => {
+    const originalNow = Date.now;
+    const now = originalNow();
+    Date.now = () => now;
+
+    storage.set('expired', 'value', 1);
+    storage.set('fresh', 'value');
+
+    Date.now = () => now + 2000;
+    expect(storage.keys()).toEqual(['fresh']);
+    expect(storage.has('expired')).toBe(false);
+
     Date.now = originalNow;
   });
 
@@ -116,10 +190,175 @@ describe('ClientStorage', () => {
     expect(base.keys()).toContain('basekey');
   });
 
+  test('driver mixin does not add Object.prototype methods as own API', () => {
+    expect(Object.prototype.hasOwnProperty.call(storage, 'hasOwnProperty')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(storage, 'toString')).toBe(false);
+  });
+
   test('driver isSupported methods', () => {
     expect(JSStorage.isSupported()).toBe(true);
     expect(typeof BrowserStorage.isSupported()).toBe('boolean');
     expect(typeof CookiesStorage.isSupported()).toBe('boolean');
+  });
+
+  test('drivers report unsupported outside browser globals', () => {
+    const output = runNode([
+      '--input-type=module',
+      '-e',
+      [
+        "import { BrowserStorage, ClientStorage, CookiesStorage } from './client-storage.js';",
+        "const storage = new ClientStorage();",
+        "console.log(JSON.stringify({ browser: BrowserStorage.isSupported(), cookies: CookiesStorage.isSupported(), driverName: storage.driverName }));"
+      ].join('')
+    ]);
+
+    expect(JSON.parse(output)).toEqual({
+      browser: false,
+      cookies: false,
+      driverName: 'js'
+    });
+  });
+
+  test('ESM default and named imports work at runtime', () => {
+    const output = runNode([
+      '--input-type=module',
+      '-e',
+      [
+        "import ClientStorage, { ClientStorage as NamedClientStorage, BaseStorage } from './client-storage.js';",
+        "const storage = new ClientStorage('js');",
+        "storage.set('esm', { ok: true });",
+        "if (!(storage instanceof NamedClientStorage)) throw new Error('named constructor mismatch');",
+        "if (!BaseStorage) throw new Error('BaseStorage missing');",
+        "console.log(JSON.stringify(storage.get('esm')));"
+      ].join('')
+    ]);
+
+    expect(output.trim()).toBe('{"ok":true}');
+  });
+
+  test('CommonJS package require exposes public constructors', () => {
+    const output = runNode([
+      '-e',
+      [
+        "const pkg = require('ClientStorage');",
+        "const ClientStorage = pkg.ClientStorage || pkg.default;",
+        "const storage = new ClientStorage('js');",
+        "storage.set('cjs', ['ok']);",
+        "if (!pkg.BaseStorage || !pkg.BrowserStorage || !pkg.CookiesStorage || !pkg.JSStorage) throw new Error('driver export missing');",
+        "console.log(JSON.stringify(storage.get('cjs')));"
+      ].join('')
+    ]);
+
+    expect(output.trim()).toBe('["ok"]');
+  });
+});
+
+describe('BrowserStorage localStorage driver', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  test('overwriting a TTL record without TTL removes persisted expiry', () => {
+    const originalNow = Date.now;
+    const now = originalNow();
+    Date.now = () => now;
+
+    const storage = new ClientStorage('localStorage');
+    storage.set('browserOverwrite', 'old', 1);
+    storage.set('browserOverwrite', 'new');
+
+    expect(window.localStorage.getItem('browserOverwrite.___exp')).toBeNull();
+
+    Date.now = () => now + 2000;
+    expect(storage.get('browserOverwrite')).toBe('new');
+
+    Date.now = originalNow;
+    storage.empty();
+  });
+
+  test('init loads existing values and removes expired TTL records', () => {
+    const originalNow = Date.now;
+    const now = originalNow();
+    Date.now = () => now;
+
+    window.localStorage.setItem('persisted', encodeURIComponent(JSON.stringify({ ok: true })));
+    window.localStorage.setItem('expired', encodeURIComponent(JSON.stringify('old')));
+    window.localStorage.setItem('expired.___exp', String(now - 1000));
+
+    const storage = new ClientStorage('localStorage');
+
+    expect(storage.get('persisted')).toEqual({ ok: true });
+    expect(storage.has('expired')).toBe(false);
+    expect(window.localStorage.getItem('expired')).toBeNull();
+    expect(window.localStorage.getItem('expired.___exp')).toBeNull();
+
+    Date.now = originalNow;
+    storage.empty();
+  });
+
+  test('remove() deletes value and TTL from localStorage', () => {
+    const storage = new ClientStorage('localStorage');
+
+    storage.set('removeMe', 'value', 60);
+    expect(window.localStorage.getItem('removeMe')).not.toBeNull();
+    expect(window.localStorage.getItem('removeMe.___exp')).not.toBeNull();
+
+    expect(storage.remove('removeMe')).toBe(true);
+    expect(window.localStorage.getItem('removeMe')).toBeNull();
+    expect(window.localStorage.getItem('removeMe.___exp')).toBeNull();
+  });
+});
+
+describe('CookiesStorage cookie driver', () => {
+  beforeEach(() => {
+    clearCookies();
+  });
+
+  afterEach(() => {
+    clearCookies();
+  });
+
+  test('set(), get(), has(), and remove() work through document.cookie', () => {
+    const storage = new ClientStorage('cookies');
+
+    expect(storage.set('cookieKey', { ok: true }, 60)).toBe(true);
+    expect(storage.has('cookieKey')).toBe(true);
+    expect(storage.get('cookieKey')).toEqual({ ok: true });
+    expect(document.cookie).toContain('%22cookieKey%22=');
+    expect(document.cookie).toContain('%22cookieKey%22.___exp=');
+
+    expect(storage.remove('cookieKey')).toBe(true);
+    expect(storage.has('cookieKey')).toBe(false);
+    expect(document.cookie).not.toContain('%22cookieKey%22=');
+  });
+
+  test('new cookie driver instance restores TTL metadata from encoded cookie keys', () => {
+    const storage = new ClientStorage('cookies');
+    storage.set('reloadTTL', 'value', 60);
+
+    const reloaded = new ClientStorage('cookies');
+
+    expect(reloaded.has('reloadTTL')).toBe(true);
+    expect(reloaded.get('reloadTTL')).toBe('value');
+    expect(reloaded.ttlData.reloadTTL).toBe(storage.ttlData.reloadTTL);
+  });
+
+  test('init parses quoted cookie values and valid TTL metadata', () => {
+    const expireAt = Date.now() + 60000;
+    const storage = new CookiesStorage(undefined, 'quoted="%22text%22"; quoted.___exp=' + expireAt);
+
+    expect(storage.has('quoted')).toBe(true);
+    expect(storage.get('quoted')).toBe('text');
+    expect(storage.ttlData.quoted).toBe(expireAt);
+  });
+
+  test('init skips expired cookie records', () => {
+    const expireAt = Date.now() - 1000;
+    const storage = new CookiesStorage(undefined, 'expired=%22old%22; expired.___exp=' + expireAt);
+
+    expect(storage.has('expired')).toBe(false);
+    expect(storage.get('expired')).toBeUndefined();
+    expect(storage.keys()).toEqual([]);
   });
 });
 

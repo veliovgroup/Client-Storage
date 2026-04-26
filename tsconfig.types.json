@@ -15,6 +15,8 @@
   },
   "files": [
     "index.d.ts",
-    "tests/types/public-api.test-d.ts"
+    "index.d.cts",
+    "tests/types/public-api.test-d.ts",
+    "tests/types/commonjs-public-api.test-d.cts"
   ]
 }

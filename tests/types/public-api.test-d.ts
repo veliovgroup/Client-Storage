@@ -1,4 +1,5 @@
 import ClientStorage, {
+  BaseStorage,
   BrowserStorage,
   ClientStorage as NamedClientStorage,
   CookiesStorage,
@@ -13,9 +14,10 @@ const hasToken: boolean = storage.has('token');
 const keys: string[] = storage.keys();
 const maybeValue: unknown = storage.get('prefs');
 
-const namedStorage = new NamedClientStorage({ driverName: 'cookies', prefix: 'app:' });
+const namedStorage = new NamedClientStorage('cookies');
 namedStorage.empty();
 
+const baseDriver = new BaseStorage(storage);
 const jsDriver = new JSStorage(storage);
 const browserDriver = new BrowserStorage(storage);
 const cookiesDriver = new CookiesStorage(storage, '');
@@ -29,6 +31,8 @@ const driverSupportFlags: boolean[] = [
 void hasToken;
 void keys;
 void maybeValue;
+void namedStorage;
+void baseDriver;
 void jsDriver;
 void browserDriver;
 void cookiesDriver;
