@@ -8,8 +8,10 @@ const isServer = () =>
   typeof window === 'undefined' || typeof document === 'undefined';
 
 const debug = (...args) => {
-  // eslint-disable-next-line no-console
-  console.warn(...args);
+  if (typeof console === 'object' && console && console.warn) {
+    // eslint-disable-next-line no-console
+    console.warn(...args);
+  }
 };
 
 const mixin = (target, proto) => {
