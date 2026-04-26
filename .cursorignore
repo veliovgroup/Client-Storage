@@ -12,6 +12,8 @@ CHANGELOG.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 HISTORY.md
-index.cjs
+client-storage.cjs
 LICENCE
 LICENSE
+*.map
+package-lock.json
