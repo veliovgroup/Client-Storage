@@ -373,6 +373,19 @@ describe('BrowserStorage localStorage driver', () => {
     window.localStorage.clear();
   });
 
+  test('isSupported returns true when localStorage is writable', () => {
+    const setItem = jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem');
+    const removeItem = jest.spyOn(Object.getPrototypeOf(window.localStorage), 'removeItem');
+
+    expect(BrowserStorage.isSupported()).toBe(true);
+
+    expect(setItem).toHaveBeenCalledWith('___test___', 'test');
+    expect(removeItem).toHaveBeenCalledWith('___test___');
+
+    setItem.mockRestore();
+    removeItem.mockRestore();
+  });
+
   test('isSupported returns false when localStorage can not be accessed', () => {
     const setItem = jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem').mockImplementation(() => {
       throw new Error('localStorage disabled');
@@ -381,6 +394,27 @@ describe('BrowserStorage localStorage driver', () => {
     expect(BrowserStorage.isSupported()).toBe(false);
 
     setItem.mockRestore();
+  });
+
+  test('init treats non-numeric TTL metadata as expired', () => {
+    const originalNow = Date.now;
+    const now = originalNow();
+    Date.now = () => now;
+
+    window.localStorage.setItem('badTTL', encodeURIComponent(JSON.stringify('value')));
+    window.localStorage.setItem('badTTL.___exp', 'invalid-number');
+    window.localStorage.setItem('kept', encodeURIComponent(JSON.stringify({ ok: true })));
+
+    const storage = new ClientStorage('localStorage');
+
+    expect(storage.get('badTTL')).toBeUndefined();
+    expect(storage.has('badTTL')).toBe(false);
+    expect(window.localStorage.getItem('badTTL')).toBeNull();
+    expect(window.localStorage.getItem('badTTL.___exp')).toBeNull();
+    expect(storage.get('kept')).toEqual({ ok: true });
+
+    Date.now = originalNow;
+    storage.empty();
   });
 
   test('CookiesStorage.isSupported uses exact marker match', () => {
@@ -424,6 +458,16 @@ describe('BrowserStorage localStorage driver', () => {
 
     Date.now = originalNow;
     storage.empty();
+  });
+
+  test('set returns false when BaseStorage.set fails', () => {
+    const storage = new ClientStorage('localStorage');
+    const setItem = jest.spyOn(Object.getPrototypeOf(window.localStorage), 'setItem');
+
+    expect(storage.set(null, 'bad')).toBe(false);
+    expect(setItem).not.toHaveBeenCalled();
+
+    setItem.mockRestore();
   });
 
   test('init loads existing values and removes expired TTL records', () => {
