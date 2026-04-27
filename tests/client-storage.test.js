@@ -618,6 +618,55 @@ describe('CookiesStorage cookie driver', () => {
     expect(storage.get('expired')).toBeUndefined();
     expect(storage.keys()).toEqual([]);
   });
+
+  test('init handles empty and malformed cookie strings', () => {
+    const empty = new CookiesStorage(undefined, '');
+    const malformed = new CookiesStorage(undefined, '=bad; noEquals; ;');
+
+    expect(empty.keys()).toEqual([]);
+    expect(malformed.keys()).toEqual([]);
+    expect(malformed.ttlData).toEqual({});
+  });
+
+  test('set applies default TTL when ttl is omitted', () => {
+    const now = Date.now();
+    const storage = new ClientStorage('cookies');
+
+    expect(storage.set('defaultTTL', 'value')).toBe(true);
+    expect(storage.has('defaultTTL')).toBe(true);
+    expect(storage.get('defaultTTL')).toBe('value');
+    expect(document.cookie).toContain('%22defaultTTL%22=%22value%22');
+    expect(document.cookie).toContain('%22defaultTTL%22.___exp=');
+    expect(storage.ttlData.defaultTTL).toBeGreaterThan(Date.now());
+    expect(storage.ttlData.defaultTTL - now).toBeGreaterThan(315399000000);
+  });
+
+  test('set returns false when BaseStorage.set returns false', () => {
+    const superSet = jest.spyOn(BaseStorage.prototype, 'set').mockReturnValue(false);
+
+    const storage = new ClientStorage('cookies');
+
+    try {
+      expect(storage.set('blocked', 'value')).toBe(false);
+      expect(storage.get('blocked')).toBeUndefined();
+      expect(document.cookie).toBe('');
+    } finally {
+      superSet.mockRestore();
+    }
+  });
+
+  test('static isSupported returns false in server-like environment', () => {
+    const output = runNode([
+      '--input-type=module',
+      '-e',
+      [
+        "import { CookiesStorage } from './client-storage.js';",
+        "console.log(String(CookiesStorage.isSupported()));"
+      ].join('')
+    ]);
+
+    expect(output.trim()).toBe('false');
+  });
 });
 
 describe('Error handling and edge cases', () => {
