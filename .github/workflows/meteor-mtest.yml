@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install Meteor
@@ -33,7 +33,7 @@ jobs:
         run: meteor --version
 
       - name: Install dependencies
-        run: npm ci
+        run: meteor npm ci
 
       - name: Run Meteor tests via mtest
-        run: npm run test:meteor:console
+        run: meteor npm run test:meteor:console
