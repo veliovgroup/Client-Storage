@@ -64,6 +64,44 @@ describe('ClientStorage', () => {
     cookieSupport.mockRestore();
   });
 
+  test('constructor does not throw when console.warn is unavailable', () => {
+    const browserSupport = jest.spyOn(BrowserStorage, 'isSupported').mockReturnValue(false);
+    const cookieSupport = jest.spyOn(CookiesStorage, 'isSupported').mockReturnValue(false);
+    const warnDescriptor = Object.getOwnPropertyDescriptor(console, 'warn');
+    const restoreConsoleWarn = () => {
+      if (warnDescriptor && warnDescriptor.configurable) {
+        Object.defineProperty(console, 'warn', warnDescriptor);
+      } else if (warnDescriptor) {
+        console.warn = warnDescriptor.value;
+      } else {
+        delete console.warn;
+      }
+    };
+
+    try {
+      Object.defineProperty(console, 'warn', {
+        configurable: true,
+        enumerable: false,
+        value: undefined,
+        writable: true
+      });
+    } catch (_) {
+      console.warn = undefined;
+    }
+
+    try {
+      expect(() => {
+        const storage = new ClientStorage('localStorage');
+        expect(storage.driverName).toBe('js');
+      }).not.toThrow();
+    } finally {
+      restoreConsoleWarn();
+    }
+
+    browserSupport.mockRestore();
+    cookieSupport.mockRestore();
+  });
+
   test('constructor with unknown driver falls back through auto detection', () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const storage = new ClientStorage('not-a-driver');
@@ -223,6 +261,16 @@ describe('ClientStorage', () => {
     expect(Object.prototype.hasOwnProperty.call(storage, 'toString')).toBe(false);
   });
 
+  test('BaseStorage cleans up corrupted TTL metadata on access', () => {
+    const base = new BaseStorage();
+    base.set('basekey', 'baseval', 1);
+    base.ttlData.basekey = 'corrupted';
+
+    expect(base.has('basekey')).toBe(false);
+    expect(base.get('basekey')).toBeUndefined();
+    expect(base.keys()).toEqual([]);
+  });
+
   test('driver isSupported methods', () => {
     expect(JSStorage.isSupported()).toBe(true);
     expect(typeof BrowserStorage.isSupported()).toBe('boolean');
@@ -294,6 +342,31 @@ describe('BrowserStorage localStorage driver', () => {
     expect(BrowserStorage.isSupported()).toBe(false);
 
     setItem.mockRestore();
+  });
+
+  test('CookiesStorage.isSupported uses exact marker match', () => {
+    const cookieDescriptor = Object.getOwnPropertyDescriptor(document, 'cookie');
+    if (!cookieDescriptor) {
+      return;
+    }
+
+    Object.defineProperty(document, 'cookie', {
+      configurable: true,
+      get() {
+        return 'foo=1; not___isSupported___=value; bar=baz';
+      },
+      set() {
+        return void 0;
+      }
+    });
+
+    const result = CookiesStorage.isSupported();
+
+    expect(result).toBe(false);
+
+    if (cookieDescriptor) {
+      Object.defineProperty(document, 'cookie', cookieDescriptor);
+    }
   });
 
   test('overwriting a TTL record without TTL removes persisted expiry', () => {
