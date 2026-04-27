@@ -241,6 +241,16 @@ describe('ClientStorage', () => {
     expect(storage.remove(123)).toBe(false);
   });
 
+  test('remove() with non-string non-undefined arg does not clear non-empty storage', () => {
+    storage.set('keep', 'value');
+    expect(storage.remove(123)).toBe(false);
+    expect(storage.remove(null)).toBe(false);
+    expect(storage.remove({})).toBe(false);
+    expect(storage.remove(true)).toBe(false);
+    expect(storage.has('keep')).toBe(true);
+    expect(storage.get('keep')).toBe('value');
+  });
+
   test('multiple instances for js driver have isolated memory (persistent drivers share)', () => {
     const s1 = new ClientStorage('js');
     const s2 = new ClientStorage('js');
@@ -254,6 +264,34 @@ describe('ClientStorage', () => {
     expect(base.set('basekey', 'baseval')).toBe(true);
     expect(base.get('basekey')).toBe('baseval');
     expect(base.keys()).toContain('basekey');
+  });
+
+  test('BaseStorage.get removes and returns undefined for expired TTL', () => {
+    const base = new BaseStorage();
+    const originalNow = Date.now;
+    const now = originalNow();
+    Date.now = () => now;
+
+    base.set('expireMe', 'old', 1);
+    Date.now = () => now + 2000;
+
+    expect(base.get('expireMe')).toBeUndefined();
+    expect(base.has('expireMe')).toBe(false);
+    expect(base.keys()).toEqual([]);
+
+    Date.now = originalNow;
+  });
+
+  test('BaseStorage.empty clears all keys and returns false when already empty', () => {
+    const base = new BaseStorage();
+
+    expect(base.empty()).toBe(false);
+
+    base.set('a', 1);
+    base.set('b', 2);
+    expect(base.empty()).toBe(true);
+    expect(base.keys()).toEqual([]);
+    expect(base.empty()).toBe(false);
   });
 
   test('driver mixin does not add Object.prototype methods as own API', () => {
@@ -272,6 +310,7 @@ describe('ClientStorage', () => {
   });
 
   test('driver isSupported methods', () => {
+    expect(BaseStorage.isSupported()).toBe(true);
     expect(JSStorage.isSupported()).toBe(true);
     expect(typeof BrowserStorage.isSupported()).toBe('boolean');
     expect(typeof CookiesStorage.isSupported()).toBe('boolean');
