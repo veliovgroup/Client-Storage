@@ -68,6 +68,7 @@ class BaseStorage {
   }
 
   remove(key) {
+    if (key !== void 0 && typeof key !== 'string') return false;
     if (typeof key === 'string') {
       if (hasOwn(this.data, key)) {
         delete this.data[key];
@@ -76,7 +77,7 @@ class BaseStorage {
       }
       return false;
     }
-    // empty all
+    // empty all (key is undefined)
     const keys = this.keys();
     if (keys.length === 0) return false;
     for (let i = 0; i < keys.length; i++) {
@@ -94,7 +95,7 @@ class BaseStorage {
     try {
       decoded = decodeURIComponent(val);
     } catch (_) {
-      decoded = globalThis.unescape(val);
+      // malformed URI sequence — keep raw value
     }
     return parseValue(decoded);
   }

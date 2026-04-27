@@ -99,8 +99,7 @@ class ClientStorage {
    * @returns {Boolean}
    */
   set(key, value, ttl) {
-    // Implemented by selected driver prototype (mixed via Object.assign)
-    return this.driver.set ? this.driver.set(key, value, ttl) : false; // fallback
+    return this.driver.set(key, value, ttl);
   }
 
   /**
@@ -139,6 +138,18 @@ class ClientStorage {
   }
 
   /**
+   * @locus Client
+   * @memberOf ClientStorage
+   * @name remove
+   * @param {String} [key] - The name of the record to remove. Omit to remove all.
+   * @summary Remove a single record by key, or all records if no key provided.
+   * @returns {Boolean}
+   */
+  remove(key) {
+    return this.driver.remove(key);
+  }
+
+  /**
    * @function
    * @memberOf ClientStorage
    * @name empty
@@ -146,7 +157,7 @@ class ClientStorage {
    * @returns {Boolean}
    */
   empty() {
-    return this.remove();
+    return this.driver.remove();
   }
 }
 
