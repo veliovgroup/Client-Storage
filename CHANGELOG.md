@@ -1,1 +1,1 @@
-For full changelog see [releases on GitHub](https://github.com/veliovgroup/Client-Storage/releases)
+For full changelog see [releases on GitHub](https://github.com/veliovgroup/client-storage/releases)

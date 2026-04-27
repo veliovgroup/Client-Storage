@@ -1,6 +1,6 @@
 {
   "name": "ClientStorage",
-  "version": "4.0.2",
+  "version": "5.0.0",
   "description": "Deprecated compatibility shim for ClientStorage. Use @veliovgroup/client-storage instead.",
   "main": "./client-storage.cjs",
   "module": "./client-storage.js",
