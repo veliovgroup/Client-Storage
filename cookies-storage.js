@@ -90,8 +90,8 @@ class CookiesStorage extends BaseStorage {
       const escapedKey = this.escape(key);
       const escapedValue = this.escape(value);
       const expireAt = this.ttlData[key];
-      document.cookie = escapedKey + '=' + escapedValue + '; Max-Age=' + ttl + '; Path=/';
-      document.cookie = escapedKey + this.TTL_SUFFIX + '=' + expireAt + '; Max-Age=' + ttl + '; Path=/';
+      document.cookie = `${escapedKey}=${escapedValue}; Max-Age=${ttl}; Path=/`;
+      document.cookie = `${escapedKey}${this.TTL_SUFFIX}=${expireAt}; Max-Age=${ttl}; Path=/`;
       return true;
     }
     return false;
@@ -109,8 +109,8 @@ class CookiesStorage extends BaseStorage {
     const result = super.remove(key);
     if (typeof key === 'string') {
       const escapedKey = this.escape(key);
-      document.cookie = escapedKey + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
-      document.cookie = escapedKey + this.TTL_SUFFIX + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+      document.cookie = `${escapedKey}=; Expires=${EXPIRATION_COOKIE}; Path=/`;
+      document.cookie = `${escapedKey}${this.TTL_SUFFIX}=; Expires=${EXPIRATION_COOKIE}; Path=/`;
     }
     return result;
   }
@@ -129,10 +129,10 @@ class CookiesStorage extends BaseStorage {
         return false;
       }
 
-      const marker = IS_SUPPORTED_KEY + '=' + IS_SUPPORTED_VALUE;
-      document.cookie = marker + '; Max-Age=' + Math.floor(DEFAULT_TTL) + '; Path=/';
-      result = new RegExp('(?:^|;\\s*)' + marker + '(?:;|$)').test(document.cookie);
-      document.cookie = IS_SUPPORTED_KEY + '=; Expires=' + EXPIRATION_COOKIE + '; Path=/';
+      const marker = `${IS_SUPPORTED_KEY}=${IS_SUPPORTED_VALUE}`;
+      document.cookie = `${marker}; Max-Age=${Math.floor(DEFAULT_TTL)}; Path=/`;
+      result = new RegExp(`(?:^|;\\s*)${marker}(?:;|$)`).test(document.cookie);
+      document.cookie = `${IS_SUPPORTED_KEY}=; Expires=${EXPIRATION_COOKIE}; Path=/`;
     } catch (_) {
       return false;
     }
