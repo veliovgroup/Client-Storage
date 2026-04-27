@@ -14,6 +14,7 @@
 - Plan-driven: complete all todos in order. Mark `in_progress` at start. Never edit plan file.
 - Terse technical responses. Drop articles, fillers, pleasantries, hedging. Fragments OK.
 - Use TodoWrite for complex/multi-step. Mark completed immediately.
+- Always respond in English. Do not switch language even when code contains Cyrillic (test data).
 
 ### Project
 - `npm-client-storage`: `ClientStorage`. Bulletproof browser persistent storage. Drivers (localStorage > cookies > js in-mem fallback). TTL, JSON values (obj/array/bool/null/undef), Unicode, no deps. Meteor + NPM + full TS.
@@ -37,7 +38,7 @@
 - Structure: small pure functions for transforms, formatting, validation. Prefer const + arrow or function expression over loose named function declarations when it clarifies scope and ordering.
 - Performance: single-pass O(n) where possible; avoid repeated work, nested heavy loops on large data; cache derived values when inputs are few and well-defined.
 - Objects/arrays: trailing commas in multiline object/array literals. Extract helpers when nesting gets deep.
-- Ternary expressions: inline unelss multi-level. Avoid multi-level ternary expressions.
+- Ternary expressions: inline unless multi-level. Avoid multi-level ternary expressions.
 
 ### Guardrails
 - ALWAYS respect .cursorignore: avoid editing, indexing, interacting with its files (node_modules, client-storage.cjs, package-lock.json, *.map, old docs CHANGELOG/HISTORY/CODE_OF_CONDUCT, coverage/, .cursor/*, .npmignore, LICENSE variants, etc.).
@@ -49,7 +50,8 @@
 ### Key commands
 - `npm run build`
 - `npm test`
-- `npm run test:meteor`
+- `npm run test:meteor` — browser UI (dev); opens browser
+- `npm run test:meteor:console` — headless via `@zodern/mtest` (CI-friendly, exits on completion)
 - `npm run typecheck`
 
 ---
