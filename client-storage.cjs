@@ -55,8 +55,10 @@ class BaseStorage {
    * Check if TTL expired for key. Auto cleanup on access.
    */
   _checkTTL(key) {
-    const expireAt = this.ttlData[key];
-    if (expireAt && expireAt <= Date.now()) {
+    if (!hasOwn(this.ttlData, key)) return false;
+
+    const expireAt = Number(this.ttlData[key]);
+    if (!Number.isFinite(expireAt) || expireAt <= Date.now()) {
       this.remove(key);
       return true;
     }
@@ -98,6 +100,7 @@ class BaseStorage {
   }
 
   remove(key) {
+    if (key !== void 0 && typeof key !== 'string') return false;
     if (typeof key === 'string') {
       if (hasOwn(this.data, key)) {
         delete this.data[key];
@@ -106,7 +109,7 @@ class BaseStorage {
       }
       return false;
     }
-    // empty all
+    // empty all (key is undefined)
     const keys = this.keys();
     if (keys.length === 0) return false;
     for (let i = 0; i < keys.length; i++) {
@@ -124,7 +127,7 @@ class BaseStorage {
     try {
       decoded = decodeURIComponent(val);
     } catch (_) {
-      decoded = globalThis.unescape(val);
+      // malformed URI sequence — keep raw value
     }
     return parseValue(decoded);
   }
@@ -135,6 +138,9 @@ class BaseStorage {
 }
 
 const DEFAULT_TTL = 3.154e+8; // 10 years
+const IS_SUPPORTED_KEY = '__isSupported__';
+const IS_SUPPORTED_VALUE = 'value';
+const EXPIRATION_COOKIE = 'Thu, 01 Jan 1970 00:00:00 GMT';
 
 /**
  * @locus Client
@@ -166,6 +172,7 @@ class CookiesStorage extends BaseStorage {
         if (i < 0) return null;
 
         const rawKey = pair.substring(0, i).trim();
+        if (!rawKey) return null;
         const valPart = pair.substring(i + 1).trim();
         let val = valPart;
 
@@ -220,8 +227,8 @@ class CookiesStorage extends BaseStorage {
       const escapedKey = this.escape(key);
       const escapedValue = this.escape(value);
       const expireAt = this.ttlData[key];
-      document.cookie = escapedKey + '=' + escapedValue + '; Max-Age=' + ttl + '; Path=/';
-      document.cookie = escapedKey + this.TTL_SUFFIX + '=' + expireAt + '; Max-Age=' + ttl + '; Path=/';
+      document.cookie = `${escapedKey}=${escapedValue}; Max-Age=${ttl}; Path=/`;
+      document.cookie = `${escapedKey}${this.TTL_SUFFIX}=${expireAt}; Max-Age=${ttl}; Path=/`;
       return true;
     }
     return false;
@@ -239,8 +246,8 @@ class CookiesStorage extends BaseStorage {
     const result = super.remove(key);
     if (typeof key === 'string') {
       const escapedKey = this.escape(key);
-      document.cookie = escapedKey + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
-      document.cookie = escapedKey + this.TTL_SUFFIX + '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+      document.cookie = `${escapedKey}=; Expires=${EXPIRATION_COOKIE}; Path=/`;
+      document.cookie = `${escapedKey}${this.TTL_SUFFIX}=; Expires=${EXPIRATION_COOKIE}; Path=/`;
     }
     return result;
   }
@@ -258,9 +265,11 @@ class CookiesStorage extends BaseStorage {
       if (typeof document === 'undefined' || typeof navigator === 'undefined') {
         return false;
       }
-      document.cookie = '___isSupported___=value; Max-Age=' + DEFAULT_TTL + '; Path=/';
-      result = document.cookie.includes('___isSupported___');
-      document.cookie = '___isSupported___=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+
+      const marker = `${IS_SUPPORTED_KEY}=${IS_SUPPORTED_VALUE}`;
+      document.cookie = `${marker}; Max-Age=${Math.floor(DEFAULT_TTL)}; Path=/`;
+      result = new RegExp(`(?:^|;\\s*)${marker}(?:;|$)`).test(document.cookie);
+      document.cookie = `${IS_SUPPORTED_KEY}=; Expires=${EXPIRATION_COOKIE}; Path=/`;
     } catch (_) {
       return false;
     }
@@ -278,13 +287,13 @@ class JSStorage extends BaseStorage {
     super(clientStorage);
   }
 
-/**
- * @locus Client
- * @memberOf JSStorage
- * @name isSupported
- * @summary Always returns true for in-memory driver.
- * @returns {Boolean}
- */
+  /**
+   * @locus Client
+   * @memberOf JSStorage
+   * @name isSupported
+   * @summary Always returns true for in-memory driver.
+   * @returns {Boolean}
+   */
   static isSupported() {
     return true;
   }
@@ -419,14 +428,16 @@ const isServer = () =>
   typeof window === 'undefined' || typeof document === 'undefined';
 
 const debug = (...args) => {
-  // eslint-disable-next-line no-console
-  console.warn(...args);
+  if (typeof console === 'object' && console && console.warn) {
+    // eslint-disable-next-line no-console
+    console.warn(...args);
+  }
 };
 
 const mixin = (target, proto) => {
   if (!proto || proto === Object.prototype) return;
   Object.getOwnPropertyNames(proto).forEach((name) => {
-    if (name !== 'constructor' && !hasOwn(target, name)) {
+    if (name !== 'constructor' && !(name in target)) {
       target[name] = proto[name];
     }
   });
@@ -506,8 +517,7 @@ class ClientStorage {
    * @returns {Boolean}
    */
   set(key, value, ttl) {
-    // Implemented by selected driver prototype (mixed via Object.assign)
-    return this.driver.set ? this.driver.set(key, value, ttl) : false; // fallback
+    return this.driver.set(key, value, ttl);
   }
 
   /**
@@ -519,19 +529,7 @@ class ClientStorage {
    * @returns {any|undefined}
    */
   get(key) {
-    if (typeof key !== 'string') {
-      return void 0;
-    }
-
-    if (hasOwn(this.data, key)) {
-      if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
-        this.remove(key);
-        return void 0;
-      }
-      return this.data[key];
-    }
-
-    return void 0;
+    return this.driver.get(key);
   }
 
   /**
@@ -543,18 +541,7 @@ class ClientStorage {
    * @returns {Boolean}
    */
   has(key) {
-    if (typeof key !== 'string') {
-      return false;
-    }
-
-    if (hasOwn(this.data, key)) {
-      if (this.ttlData[key] && this.ttlData[key] <= Date.now()) {
-        this.remove(key);
-        return false;
-      }
-      return true;
-    }
-    return false;
+    return this.driver.has(key);
   }
 
   /**
@@ -565,7 +552,19 @@ class ClientStorage {
    * @returns {[String]}
    */
   keys() {
-    return Object.keys(this.data);
+    return this.driver.keys();
+  }
+
+  /**
+   * @locus Client
+   * @memberOf ClientStorage
+   * @name remove
+   * @param {String} [key] - The name of the record to remove. Omit to remove all.
+   * @summary Remove a single record by key, or all records if no key provided.
+   * @returns {Boolean}
+   */
+  remove(key) {
+    return this.driver.remove(key);
   }
 
   /**
@@ -576,7 +575,7 @@ class ClientStorage {
    * @returns {Boolean}
    */
   empty() {
-    return this.remove();
+    return this.driver.remove();
   }
 }
 
