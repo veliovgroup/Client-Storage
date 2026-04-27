@@ -403,7 +403,7 @@ describe('ClientStorage', () => {
     const output = runNode([
       '-e',
       [
-        "const pkg = require('ClientStorage');",
+        "const pkg = require('@veliovgroup/client-storage');",
         "const ClientStorage = pkg.ClientStorage || pkg.default;",
         "const storage = new ClientStorage('js');",
         "storage.set('cjs', ['ok']);",

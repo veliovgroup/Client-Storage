@@ -27,6 +27,8 @@ CHANGELOG.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 HISTORY.md
+legacy/
+scripts/
 docs/
 tests/
 coverage/

@@ -1,11 +1,15 @@
 {
-  "name": "ClientStorage",
+  "name": "@veliovgroup/client-storage",
   "version": "5.0.0",
-  "description": "Bulletproof persistent browser storage with pluggable drivers (localStorage, cookies, in-memory). Full TS support, TTL, Unicode, no deps. Meteor + NPM compatible.",
+  "description": "Bulletproof persistent client (browser) storage with pluggable drivers (localStorage, cookies, in-memory). Full TS support, TTL, Unicode, no deps",
   "main": "./client-storage.cjs",
   "module": "./client-storage.js",
   "type": "module",
   "types": "./index.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "exports": {
     ".": {
       "import": {
@@ -37,6 +41,9 @@
     "build:types": "cp ./index.d.ts ./index.d.cts",
     "build": "npm run build:cjs && npm run build:types",
     "typecheck": "tsc -p tsconfig.types.json",
+    "sync:legacy-shim": "node ./scripts/sync-legacy-shim.mjs",
+    "deprecate:legacy": "node ./scripts/deprecate-legacy-package.mjs",
+    "publish:legacy-shim": "npm run sync:legacy-shim && cd legacy && npm install && npm publish",
     "prepublishOnly": "npm run build",
     "test": "jest --config jest.config.js && npm run typecheck",
     "test:meteor": "meteor test-packages ./",
@@ -63,12 +70,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/veliovgroup/Client-Storage.git"
+    "url": "git+https://github.com/veliovgroup/client-storage.git"
   },
   "bugs": {
-    "url": "https://github.com/veliovgroup/Client-Storage/issues"
+    "url": "https://github.com/veliovgroup/client-storage/issues"
   },
-  "homepage": "https://github.com/veliovgroup/Client-Storage#readme",
+  "homepage": "https://github.com/veliovgroup/client-storage#readme",
   "author": "dr.dimitru (https://veliovgroup.com)",
   "license": "BSD-3-Clause",
   "devDependencies": {

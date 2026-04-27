@@ -1,0 +1,45 @@
+{
+  "name": "ClientStorage",
+  "version": "4.0.2",
+  "description": "Deprecated compatibility shim for ClientStorage. Use @veliovgroup/client-storage instead.",
+  "main": "./client-storage.cjs",
+  "module": "./client-storage.js",
+  "type": "module",
+  "types": "./index.d.ts",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "browser",
+    "persistent",
+    "storage",
+    "localstorage",
+    "cookies",
+    "local-storage",
+    "client-storage"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "deprecated": "Package moved to @veliovgroup/client-storage. Migrate to the scoped package and import name immediately.",
+  "dependencies": {
+    "@veliovgroup/client-storage": "^5.0.0"
+  },
+  "files": [
+    "client-storage.js",
+    "client-storage.cjs",
+    "index.d.ts",
+    "index.d.cts",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./client-storage.js"
+      },
+      "require": {
+        "types": "./index.d.cts",
+        "default": "./client-storage.cjs"
+      }
+    }
+  }
+}

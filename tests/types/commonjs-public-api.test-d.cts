@@ -1,4 +1,4 @@
-import clientStoragePackage = require('ClientStorage');
+import clientStoragePackage = require('@veliovgroup/client-storage');
 
 const storage = new clientStoragePackage.ClientStorage('js');
 storage.set('token', 'abc', 30);

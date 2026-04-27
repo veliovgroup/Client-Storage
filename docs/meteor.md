@@ -3,7 +3,7 @@
 ## Install
 ```sh
 meteor add ostrio:cstorage
-# or meteor npm install --save ClientStorage
+# or meteor npm install --save @veliovgroup/client-storage
 ```
 
 ## Import
@@ -18,7 +18,7 @@ const clientStorage = new ClientStorage();
 As NPM package
 
 ```js
-import { ClientStorage } from 'ClientStorage';
+import { ClientStorage } from '@veliovgroup/client-storage';
 const clientStorage = new ClientStorage();
 ```
 
@@ -95,8 +95,8 @@ See [README.md](../README.md) for general usage.
 
 - Upload and share files using [☄️ meteor-files.com](https://meteor-files.com/?ref=github-clientstorage-repo-footer) — Continue interrupted file uploads without losing any progress. There is nothing that will stop Meteor from delivering your file to the desired destination
 - Use [▲ ostr.io](https://ostr.io?ref=github-clientstorage-repo-footer) for [Server Monitoring](https://snmp-monitoring.com), [Web Analytics](https://ostr.io/info/web-analytics?ref=github-clientstorage-repo-footer), [WebSec](https://domain-protection.info), [Web-CRON](https://web-cron.info) and [SEO Pre-rendering](https://prerendering.com) of a website
-- Star on [GitHub](https://github.com/veliovgroup/Client-Storage)
-- Star on [NPM](https://www.npmjs.com/package/Client-Storage)
+- Star on [GitHub](https://github.com/veliovgroup/client-storage)
+- Star on [NPM](https://www.npmjs.com/package/@veliovgroup/client-storage)
 - Star on [Atmosphere](https://atmospherejs.com/ostrio/cstorage)
 - [Sponsor via GitHub](https://github.com/sponsors/dr-dimitru)
 - [Support via PayPal](https://paypal.me/veliovgroup)

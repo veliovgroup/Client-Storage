@@ -1,5 +1,8 @@
 # ClientStorage
 
+> [!WARNING]
+> `ClientStorage` is deprecated on npm. Use `@veliovgroup/client-storage` going forward.
+
 Bulletproof persistent browser storage. Drivers: localStorage > cookies > js (in-memory). TTL, JSON values (objects/arrays/booleans/null/undefined), Unicode. No deps. Meteor + NPM + full TS support.
 
 [![support](https://img.shields.io/badge/support-GitHub-white)](https://github.com/sponsors/dr-dimitru)
@@ -15,22 +18,22 @@ Bulletproof persistent browser storage. Drivers: localStorage > cookies > js (in
 - ㊗️ With Unicode support for values and keys;
 - 👨‍💻 With `String`, `Array`, `Object`, and `Boolean` support as values;
 - ♿ Works with disabled `localStorage` and `cookies`;
-- ☄️ [Meteor.js-specific docs](https://github.com/veliovgroup/Client-Storage/blob/master/docs/meteor.md)
-- 📦 Available via [NPM](https://www.npmjs.com/package/ClientStorage) and [Atmosphere](https://atmospherejs.com/ostrio/cstorage).
+- ☄️ [Meteor.js-specific docs](https://github.com/veliovgroup/client-storage/blob/master/docs/meteor.md)
+- 📦 Available via [NPM](https://www.npmjs.com/package/@veliovgroup/client-storage) and [Atmosphere](https://atmospherejs.com/ostrio/cstorage).
 
-![ClientStorage NPM library logo](https://raw.githubusercontent.com/veliovgroup/Client-Storage/master/cover.jpg)
+![ClientStorage NPM library logo](https://raw.githubusercontent.com/veliovgroup/client-storage/master/cover.jpg)
 
 ## Install
 
 ```sh
-npm install ClientStorage
+npm install @veliovgroup/client-storage
 ```
 
 ## Usage
 
 ```js
 // NPM / TS / ESM
-import { ClientStorage } from 'ClientStorage';
+import { ClientStorage } from '@veliovgroup/client-storage';
 const storage = new ClientStorage(); // auto or 'localStorage' | 'cookies' | 'js'
 ```
 
@@ -96,7 +99,7 @@ storage.empty(): boolean
 storage.driverName: 'localStorage' | 'cookies' | 'js'
 ```
 
-**TS**: Full types included. See `index.d.ts`. Use with `import type { ClientStorage } from 'ClientStorage';`
+**TS**: Full types included. See `index.d.ts`. Use with `import type { ClientStorage } from '@veliovgroup/client-storage';`
 
 - `ttl` is seconds.
 - `get()` and `has()` remove expired records before returning.
@@ -140,8 +143,8 @@ npm test
 
 - Upload and share files using [☄️ meteor-files.com](https://meteor-files.com/?ref=github-clientstorage-repo-footer) — Continue interrupted file uploads without losing any progress. There is nothing that will stop Meteor from delivering your file to the desired destination
 - Use [▲ ostr.io](https://ostr.io?ref=github-clientstorage-repo-footer) for [Server Monitoring](https://snmp-monitoring.com), [Web Analytics](https://ostr.io/info/web-analytics?ref=github-clientstorage-repo-footer), [WebSec](https://domain-protection.info), [Web-CRON](https://web-cron.info) and [SEO Pre-rendering](https://prerendering.com) of a website
-- Star on [GitHub](https://github.com/veliovgroup/Client-Storage)
-- Star on [NPM](https://www.npmjs.com/package/Client-Storage)
+- Star on [GitHub](https://github.com/veliovgroup/client-storage)
+- Star on [NPM](https://www.npmjs.com/package/@veliovgroup/client-storage)
 - Star on [Atmosphere](https://atmospherejs.com/ostrio/cstorage)
 - [Sponsor via GitHub](https://github.com/sponsors/dr-dimitru)
 - [Support via PayPal](https://paypal.me/veliovgroup)

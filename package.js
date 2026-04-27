@@ -1,8 +1,8 @@
 Package.describe({
   name: 'ostrio:cstorage',
   version: '5.0.0',
-  summary: 'Bulletproof persistent Client (Browser) storage with drivers (localStorage/cookies/js), TTL, full TypeScript defs. Works with disabled storage.',
-  git: 'https://github.com/veliovgroup/Client-Storage',
+  summary: 'Bulletproof persistent Browser storage with drivers (localstorage/cookies/js), TTL, full TS defs',
+  git: 'https://github.com/veliovgroup/client-storage',
   documentation: 'README.md'
 });
 

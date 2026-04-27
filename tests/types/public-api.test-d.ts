@@ -4,7 +4,7 @@ import ClientStorage, {
   ClientStorage as NamedClientStorage,
   CookiesStorage,
   JSStorage
-} from 'ClientStorage';
+} from '@veliovgroup/client-storage';
 
 const storage = new ClientStorage('js');
 storage.set('token', 'abc', 30);

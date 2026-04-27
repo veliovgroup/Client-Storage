@@ -64,12 +64,12 @@ Canonical API + narrative: `README.md`. Meteor: `docs/meteor.md`. Types: `index.
 ### Install & import
 
 ```sh
-npm install ClientStorage
+npm install @veliovgroup/client-storage
 ```
 
 ```js
-import { ClientStorage } from 'ClientStorage';
-// CJS: require('ClientStorage').ClientStorage
+import { ClientStorage } from '@veliovgroup/client-storage';
+// CJS: require('@veliovgroup/client-storage').ClientStorage
 ```
 
 ### Construction & drivers
@@ -105,6 +105,6 @@ Values JSON-serialized for persistent drivers; supports objects, arrays, primiti
 - TTL in **seconds**. Expired keys cleaned on `get` / `has`.
 - `empty()` / `remove()` clear **tracked** keys for backend; cookie mode may interact with other cookies if prefixing not used — see README cautions.
 - Advanced / custom stacks: package exports `BaseStorage`, `BrowserStorage`, `CookiesStorage`, `JSStorage` (see README).
-- Type-only import: `import type { ClientStorage } from 'ClientStorage';`
+- Type-only import: `import type { ClientStorage } from '@veliovgroup/client-storage';`
 
 When answering user questions about **using** the library in their app, prefer README + `docs/meteor.md` over duplicating long examples here.

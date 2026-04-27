@@ -23,6 +23,8 @@ CONTRIBUTING.md
 HISTORY.md
 
 # Tests/docs/assets not part of npm payload
+legacy/
+scripts/
 package.js
 client-storage-tests.js
 package-types.json

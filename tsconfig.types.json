@@ -5,7 +5,7 @@
     "moduleResolution": "NodeNext",
     "baseUrl": ".",
     "paths": {
-      "ClientStorage": [
+      "@veliovgroup/client-storage": [
         "./index.d.ts"
       ]
     },
