@@ -64,6 +64,54 @@ describe('ClientStorage', () => {
     cookieSupport.mockRestore();
   });
 
+  test('constructor uses js storage in server-like environment', () => {
+    const output = runNode([
+      '--input-type=module',
+      '-e',
+      [
+        "import { ClientStorage } from './client-storage.js';",
+        "const storage = new ClientStorage();",
+        "const forced = new ClientStorage('localStorage');",
+        "console.log(JSON.stringify({ default: storage.driverName, forced: forced.driverName }));"
+      ].join('')
+    ]);
+
+    expect(JSON.parse(output)).toEqual({
+      default: 'js',
+      forced: 'js'
+    });
+  });
+
+  test('constructor auto-falls to cookies when BrowserStorage unavailable', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const localStorageSupport = jest.spyOn(BrowserStorage, 'isSupported').mockReturnValue(false);
+    const cookieSupport = jest.spyOn(CookiesStorage, 'isSupported').mockReturnValue(true);
+
+    const auto = new ClientStorage();
+
+    expect(auto.driverName).toBe('cookies');
+    expect(warn).not.toHaveBeenCalled();
+
+    warn.mockRestore();
+    localStorageSupport.mockRestore();
+    cookieSupport.mockRestore();
+  });
+
+  test('constructor falls back to localStorage when cookies driver is unavailable', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const localStorageSupport = jest.spyOn(BrowserStorage, 'isSupported').mockReturnValue(true);
+    const cookieSupport = jest.spyOn(CookiesStorage, 'isSupported').mockReturnValue(false);
+
+    const requestedCookies = new ClientStorage('cookies');
+
+    expect(requestedCookies.driverName).toBe('localStorage');
+    expect(warn).toHaveBeenCalledWith('ClientStorage is set to "cookies", but CookiesStorage is disabled on this browser');
+
+    warn.mockRestore();
+    localStorageSupport.mockRestore();
+    cookieSupport.mockRestore();
+  });
+
   test('constructor does not throw when console.warn is unavailable', () => {
     const browserSupport = jest.spyOn(BrowserStorage, 'isSupported').mockReturnValue(false);
     const cookieSupport = jest.spyOn(CookiesStorage, 'isSupported').mockReturnValue(false);
