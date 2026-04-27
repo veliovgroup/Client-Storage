@@ -39,6 +39,7 @@
 - Performance: single-pass O(n) where possible; avoid repeated work, nested heavy loops on large data; cache derived values when inputs are few and well-defined.
 - Objects/arrays: trailing commas in multiline object/array literals. Extract helpers when nesting gets deep.
 - Ternary expressions: inline unless multi-level. Avoid multi-level ternary expressions.
+- Prever ES6 style string interpolation to string concatenation.
 
 ### Guardrails
 - ALWAYS respect .cursorignore: avoid editing, indexing, interacting with its files (node_modules, client-storage.cjs, package-lock.json, *.map, old docs CHANGELOG/HISTORY/CODE_OF_CONDUCT, coverage/, .cursor/*, .npmignore, LICENSE variants, etc.).
